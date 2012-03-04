@@ -1,0 +1,11 @@
+{
+    "hash": "a9de4852bde016fcab7c17df42f9506a",
+    "packages": [
+        {
+            "package": "doctrine/common",
+            "version": "dev-master",
+            "source-reference": "f157be8c4f1ba713730cf66066eaac2bdfa1c1cc"
+        }
+    ],
+    "aliases": []
+}

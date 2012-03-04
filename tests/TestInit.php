@@ -1,0 +1,21 @@
+<?php
+// Tests/bootstrap.php
+$loader = @include __DIR__ . '/../vendor/.composer/autoload.php';
+if (!$loader) {
+    die(<<<'EOT'
+You must set up the project dependencies, run the following commands:
+wget http://getcomposer.org/composer.phar
+php composer.phar install
+EOT
+    );
+}
+
+use Doctrine\Common\ClassLoader;
+
+$classLoader = new ClassLoader('Doctrine\Tests', __DIR__ . '/../tests');
+$classLoader->register();
+
+Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace(
+    'Doctrine\ODM\CouchDB\Mapping\Annotations', __DIR__ . '/../lib'
+);
+
