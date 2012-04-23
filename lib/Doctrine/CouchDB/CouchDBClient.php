@@ -365,7 +365,7 @@ class CouchDBClient
      * @param DesignDocument $designDoc
      * @return View\Query
      */
-    public function createViewQuery($designDocName, $viewName, DesignDocument $designDoc)
+    public function createViewQuery($designDocName, $viewName, DesignDocument $designDoc = null)
     {
         return new View\Query($this->httpClient, $this->databaseName, $designDocName, $viewName, $designDoc);
     }
