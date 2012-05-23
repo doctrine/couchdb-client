@@ -48,12 +48,27 @@ class Query extends AbstractQuery
     /**
      * Find key in view.
      *
-     * @param  string $val
+     * @param  string|array $val
      * @return Query
      */
     public function setKey($val)
     {
+        if (is_array($val)) {
+            return $this->setKeys($val);
+        }
         $this->params['key'] = $val;
+        return $this;
+    }
+
+    /**
+     * Find keys in the view
+     *
+     * @param  array $values
+     * @return Query
+     */
+    public function setKeys(array $values)
+    {
+        $this->params['keys'] = $values;
         return $this;
     }
 
