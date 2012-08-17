@@ -29,7 +29,7 @@ class FolderDesignDocument implements DesignDocument
             foreach ($ri AS $path) {
                 $fileData = $this->getFileData($path);
                 if ($fileData !== null) {
-                    $parts = explode("/", ltrim(str_replace($this->folderPath, '', $fileData["key"]), '/'));
+                    $parts = explode(DIRECTORY_SEPARATOR, ltrim(str_replace($this->folderPath, '', $fileData["key"]), DIRECTORY_SEPARATOR));
 
                     if (count($parts) == 3) {
                         $this->data[$parts[0]][$parts[1]][$parts[2]] = $fileData["data"];
