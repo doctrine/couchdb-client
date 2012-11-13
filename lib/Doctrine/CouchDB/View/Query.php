@@ -53,9 +53,6 @@ class Query extends AbstractQuery
      */
     public function setKey($val)
     {
-        if (is_array($val)) {
-            return $this->setKeys($val);
-        }
         $this->params['key'] = $val;
         return $this;
     }
