@@ -104,6 +104,45 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertArrayHasKey('results', $changes);
         $this->assertEquals(2, count($changes['results']));
         $this->assertEquals(2, $changes['last_seq']);
+
+        // Check the limit parameter.
+        $changes = $this->couchClient->getChanges(array(
+            'limit' => 1,
+        ));
+        $this->assertArrayHasKey('results', $changes);
+        $this->assertEquals(1, count($changes['results']));
+        $this->assertEquals(1, $changes['last_seq']);
+
+        // Checks the descending parameter.
+        $changes = $this->couchClient->getChanges(array(
+            'descending' => true,
+        ));
+
+        $this->assertArrayHasKey('results', $changes);
+        $this->assertEquals(2, count($changes['results']));
+        $this->assertEquals(1, $changes['last_seq']);
+
+        // Checks the since parameter.
+        $changes = $this->couchClient->getChanges(array(
+            'since' => 1,
+        ));
+
+        $this->assertArrayHasKey('results', $changes);
+        $this->assertEquals(1, count($changes['results']));
+        $this->assertEquals(2, $changes['last_seq']);
+
+        // Checks the filter parameter.
+        $designDocPath = __DIR__ . "/../../Models/CMS/_files";
+
+        // Create a filter, that filters the only doc with {"_id":"test1"}
+        $client = $this->couchClient;
+        $client->createDesignDocument('test-filter', new FolderDesignDocument($designDocPath));
+
+        $changes = $this->couchClient->getChanges(array(
+            'filter' => 'test-filter/my_filter'
+        ));
+        $this->assertEquals(1, count($changes['results']));
+        $this->assertEquals(3, $changes['last_seq']);
     }
 
     public function testPostDocument()
