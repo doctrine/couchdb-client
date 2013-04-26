@@ -17,5 +17,10 @@
         "psr-0": {
             "Doctrine\\CouchDB": "lib/"
         }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
     }
 }
