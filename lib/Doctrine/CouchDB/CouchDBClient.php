@@ -277,10 +277,23 @@ class CouchDBClient
      * @param  array $params
      * @return array
      */
-    public function getChanges(array $params = null)
+    public function getChanges(array $params = array())
     {
         $path = '/' . $this->databaseName . '/_changes';
-        $response = $this->httpClient->request('GET', $path, $params);
+
+        if (count($params) > 0) {
+
+            foreach ($params as $key => $value) {
+                if (isset($params[$key]) === true && is_bool($value) === true) {
+                    $params[$key] = ($value) ? 'true': 'false';
+                }
+            }
+
+            $query = http_build_query($params);
+            $path = $path.'?'.$query;
+        }
+
+        $response = $this->httpClient->request('GET', $path);
 
         if ($response->status != 200) {
             throw HTTPException::fromResponse($path, $response);
