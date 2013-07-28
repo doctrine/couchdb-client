@@ -36,12 +36,21 @@ class Query extends AbstractQuery
 
     protected function getHttpQuery()
     {
+        $arguments = array();
+        foreach ($this->params as $key => $value) {
+            if ($key === 'stale') {
+                $arguments[$key] = $value;
+            } else {
+                $arguments[$key] = json_encode($value);
+            }
+        }
+
         return sprintf(
             "/%s/_design/%s/_view/%s?%s",
             $this->databaseName,
             $this->designDocumentName,
             $this->viewName,
-            http_build_query( array_map( "json_encode", $this->params ) )
+            http_build_query($arguments)
         );
     }
 
