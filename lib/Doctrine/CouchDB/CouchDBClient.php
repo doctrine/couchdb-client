@@ -77,8 +77,8 @@ class CouchDBClient
         $options = array_merge($defaults, $options);
 
         if (!isset(self::$clients[$options['type']])) {
-            throw new \InvalidArgumentException(sprintf('There is no client implementation registered for %s, valid options are %s',
-                $options['type'], array_keys(self::$clients)
+            throw new \InvalidArgumentException(sprintf('There is no client implementation registered for %s, valid options are: %s',
+                $options['type'], implode(", ", array_keys(self::$clients))
             ));
         }
         $connectionClass = self::$clients[$options['type']];
