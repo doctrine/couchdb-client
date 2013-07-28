@@ -87,6 +87,7 @@ class StreamClient extends AbstractHTTPClient
         $body = '';
         while ( !feof( $httpFilePointer ) ) {
             $body .= fgets( $httpFilePointer );
+            echo fgets( $httpFilePointer )."\n";
         }
 
         $metaData = stream_get_meta_data( $httpFilePointer );
