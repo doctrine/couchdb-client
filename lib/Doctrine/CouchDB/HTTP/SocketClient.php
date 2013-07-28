@@ -92,13 +92,13 @@ class SocketClient extends AbstractHTTPClient
         // initilization costs low, especially when the database server is not
         // available in the locale net.
         $request .= "Connection: " . ( $this->options['keep-alive'] ? 'Keep-Alive' : 'Close' ) . "\r\n";
+        $request .= "Content-type: application/json\r\n";
 
         // Also add headers and request body if data should be sent to the
         // server. Otherwise just add the closing mark for the header section
         // of the request.
         if ( $data !== null )
         {
-            $request .= "Content-type: application/json\r\n";
             $request .= "Content-Length: " . strlen( $data ) . "\r\n\r\n";
             $request .= "$data";
         }

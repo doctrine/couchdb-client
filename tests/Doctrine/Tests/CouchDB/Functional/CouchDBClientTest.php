@@ -165,4 +165,25 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $result = $query->execute();
         $this->assertInstanceOf('Doctrine\CouchDB\View\Result', $result);
     }
+
+    public function testCompactDatabase()
+    {
+        $client = $this->couchClient;
+        $client->compactDatabase();
+    }
+
+    public function testCompactView()
+    {
+        $client = $this->couchClient;
+
+        $designDocPath = __DIR__ . "/../../Models/CMS/_files";
+
+        $client = $this->couchClient;
+        $designDoc = new FolderDesignDocument($designDocPath);
+
+        $query = $client->createViewQuery('test-design-doc-query', 'username', $designDoc);
+        $result = $query->execute();
+
+        $client->compactView('test-design-doc-query');
+    }
 }
