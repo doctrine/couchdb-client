@@ -15,7 +15,3 @@ use Doctrine\Common\ClassLoader;
 $classLoader = new ClassLoader('Doctrine\Tests', __DIR__ . '/../tests');
 $classLoader->register();
 
-Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace(
-    'Doctrine\ODM\CouchDB\Mapping\Annotations', __DIR__ . '/../lib'
-);
-
