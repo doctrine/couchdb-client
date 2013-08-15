@@ -28,6 +28,11 @@ class Result implements \IteratorAggregate, \Countable, \ArrayAccess
         $this->result = $result;
     }
 
+    public function getTotalRows()
+    {
+        return $this->result['total_rows'];
+    }
+
     public function getIterator()
     {
         return new \ArrayIterator($this->result['rows']);
