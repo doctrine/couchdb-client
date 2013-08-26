@@ -177,7 +177,7 @@ class CouchDBClient
      *
      * @param int|null $limit
      * @param string|null $startKey
-     * @return \Doctrine\CouchDB\HTTP\Response
+     * @return HTTP\Response
      */
     public function allDocs($limit = null, $startKey = null)
     {
