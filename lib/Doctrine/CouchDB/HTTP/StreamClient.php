@@ -43,7 +43,9 @@ class StreamClient extends AbstractHTTPClient
      * @param string $method
      * @param string $path
      * @param string $data
+     * @param bool $raw
      * @return Response
+     * @throws HTTPException
      */
     public function request( $method, $path, $data = null, $raw = false )
     {
