@@ -70,7 +70,7 @@ abstract class AbstractQuery
     /**
      * Query the view with the current params.
      *
-     * @return array
+     * @return Result
      */
     public function execute()
     {
