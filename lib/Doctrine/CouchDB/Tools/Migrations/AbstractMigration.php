@@ -36,6 +36,7 @@ abstract class AbstractMigration
      * Execute migration by iterating over all documents in batches of 100.
      *
      * @return void
+     * @throws \RuntimeException
      */
     public function execute()
     {
