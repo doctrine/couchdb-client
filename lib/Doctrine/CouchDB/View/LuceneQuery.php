@@ -112,7 +112,7 @@ class LuceneQuery extends AbstractQuery
     }
 
     /**
-     * @param \Doctrine\ODM\CouchDB\HTTP\Response $response
+     * @param \Doctrine\CouchDB\HTTP\Response $response
      * @return LuceneResult
      */
     protected function createResult($response)

@@ -40,7 +40,7 @@ abstract class AbstractQuery
 
     /**
      * @param Client $client
-     * @param string $databaseName
+     * @param string $designDocName
      * @param string $viewName
      * @param DesignDocument $doc
      */
@@ -95,6 +95,7 @@ abstract class AbstractQuery
     }
 
     /**
+     * @param $response
      * @return Result
      */
     abstract protected function createResult($response);
@@ -103,6 +104,8 @@ abstract class AbstractQuery
      * Create non existing view
      *
      * @return void
+     * @throws \Doctrine\CouchDB\JsonDecodeException
+     * @throws \Exception
      */
     public function createDesignDocument()
     {
@@ -112,7 +115,7 @@ abstract class AbstractQuery
 
         $data = $this->doc->getData();
         if ($data === null) {
-            throw \Doctrine\ODM\CouchDB\JsonDecodeException::fromLastJsonError();
+            throw \Doctrine\CouchDB\JsonDecodeException::fromLastJsonError();
         }
         $data['_id'] = '_design/' . $this->designDocumentName;
 

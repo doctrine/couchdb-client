@@ -35,7 +35,7 @@ use Doctrine\CouchDB\View\DesignDocument;
  */
 class CouchDBClient
 {
-   /**
+    /**
      * Name of the CouchDB database
      *
      * @string
@@ -45,7 +45,7 @@ class CouchDBClient
     /**
      * The underlying HTTP Connection of the used DocumentManager.
      *
-     * @var Doctrine\ODM\CouchDB\HTTP\Client
+     * @var Client
      */
     private $httpClient;
 
@@ -66,6 +66,7 @@ class CouchDBClient
      *
      * @param array $options
      * @return CouchDBClient
+     * @throws \InvalidArgumentException
      */
     static public function create(array $options)
     {
@@ -105,7 +106,7 @@ class CouchDBClient
     }
 
     /**
-     * @return HttpClient
+     * @return Client
      */
     public function getHttpClient()
     {
@@ -122,6 +123,7 @@ class CouchDBClient
      *
      * @param  int $count
      * @return array
+     * @throws CouchDBException
      */
     public function getUuids($count = 1)
     {
@@ -139,7 +141,7 @@ class CouchDBClient
      * Find a document by ID and return the HTTP response.
      *
      * @param  string $id
-     * @return Response
+     * @return HTTP\Response
      */
     public function findDocument($id)
     {
@@ -151,7 +153,9 @@ class CouchDBClient
      * Find many documents by passing their ids and return the HTTP response.
      *
      * @param array $ids
-     * @return array
+     * @param null $limit
+     * @param null $offset
+     * @return HTTP\Response
      */
     public function findDocuments(array $ids, $limit = null, $offset = null)
     {
@@ -173,7 +177,7 @@ class CouchDBClient
      *
      * @param int|null $limit
      * @param string|null $startKey
-     * @return array
+     * @return HTTP\Response
      */
     public function allDocs($limit = null, $startKey = null)
     {
@@ -259,6 +263,7 @@ class CouchDBClient
      *
      * @param  string $name
      * @return array
+     * @throws HTTPException
      */
     public function getDatabaseInfo($name)
     {
@@ -276,6 +281,7 @@ class CouchDBClient
      *
      * @param  array $params
      * @return array
+     * @throws HTTPException
      */
     public function getChanges(array $params = array())
     {
@@ -317,6 +323,7 @@ class CouchDBClient
      *
      * @param  array $data
      * @return array<id, rev>
+     * @throws HTTPException
      */
     public function postDocument(array $data)
     {
@@ -337,6 +344,7 @@ class CouchDBClient
      * @param string $id
      * @param string|null $rev
      * @return array<id, rev>
+     * @throws HTTPException
      */
     public function putDocument($data, $id, $rev = null)
     {
@@ -361,6 +369,7 @@ class CouchDBClient
      * @param  string $id
      * @param  string $rev
      * @return void
+     * @throws HTTPException
      */
     public function deleteDocument($id, $rev)
     {
@@ -416,6 +425,7 @@ class CouchDBClient
      * Return array of data about compaction status.
      *
      * @return array
+     * @throws HTTPException
      */
     public function getCompactInfo()
     {
@@ -431,6 +441,7 @@ class CouchDBClient
      * POST /db/_compact
      *
      * @return array
+     * @throws HTTPException
      */
     public function compactDatabase()
     {
@@ -447,6 +458,7 @@ class CouchDBClient
      *
      * @param string $designDoc
      * @return array
+     * @throws HTTPException
      */
     public function compactView($designDoc)
     {
@@ -462,6 +474,7 @@ class CouchDBClient
      * POST /db/_view_cleanup
      *
      * @return array
+     * @throws HTTPException
      */
     public function viewCleanup()
     {
@@ -484,6 +497,7 @@ class CouchDBClient
      * @param array|null $ids
      * @param string|null $proxy
      * @return array
+     * @throws HTTPException
      */
     public function replicate($source, $target, $cancel = null, $continuous = null, $filter = null, array $ids = null, $proxy = null)
     {

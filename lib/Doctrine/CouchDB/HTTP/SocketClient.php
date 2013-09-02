@@ -46,6 +46,7 @@ class SocketClient extends AbstractHTTPClient
      * establish the connection, if not done yet.
      *
      * @return void
+     * @throws HTTPException
      */
     protected function checkConnection()
     {

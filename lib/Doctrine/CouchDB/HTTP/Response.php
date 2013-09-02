@@ -30,14 +30,14 @@ namespace Doctrine\CouchDB\HTTP;
 class Response
 {
     /**
-     * HTTP repsonse status
+     * HTTP response status
      *
      * @var int
      */
     public $status;
 
     /**
-     * HTTP repsonse headers
+     * HTTP response headers
      *
      * @var array
      */
@@ -53,8 +53,10 @@ class Response
     /**
      * Construct response
      *
+     * @param $status
      * @param array $headers
      * @param string $body
+     * @param bool $raw
      * @return void
      */
     public function __construct( $status, array $headers, $body, $raw = false )
