@@ -35,6 +35,9 @@ use Doctrine\CouchDB\View\DesignDocument;
  */
 class CouchDBClient
 {
+    
+    const COLLATION_END = "\xEF\xBF\xB0";
+    
     /**
      * Name of the CouchDB database
      *
