@@ -40,7 +40,7 @@ class Query extends AbstractQuery
         foreach ($this->params as $key => $value) {
             if ($key === 'stale') {
                 $arguments[$key] = $value;
-            } else {
+            } else if($key != 'keys') {
                 $arguments[$key] = json_encode($value);
             }
         }
