@@ -80,12 +80,19 @@ abstract class AbstractQuery
     protected function doExecute()
     {
         $path = $this->getHttpQuery();
-        $response = $this->client->request("GET", $path);
+        $method = "GET";
+        $data = null;
+        if($this->getParameter("keys") !== null) {
+  	      $method = "POST";
+          $data = json_encode(array("keys" => $this->getParameter("keys")));
+        }
+
+        $response = $this->client->request($method, $path, $data);
 
         if ( $response instanceof ErrorResponse ) {
             // Create view, if it does not exist yet
             $this->createDesignDocument();
-            $response = $this->client->request( "GET", $path );
+            $response = $this->client->request($method, $path, $data);
         }
 
         if ($response->status >= 400) {
