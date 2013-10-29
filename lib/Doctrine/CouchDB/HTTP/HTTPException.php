@@ -70,7 +70,7 @@ class HTTPException extends \Doctrine\CouchDB\CouchDBException
 
     private static function fixCloudantBulkCustomError($response)
     {
-        if (isset($response->body[0]['error']) && isset($response['body'][0]['reason'])) {
+        if (isset($response->body[0]['error']) && isset($response->body[0]['reason'])) {
             $response->body['error'] = $response->body[0]['error'];
             $response->body['reason'] = $response->body[0]['reason'];
         }
