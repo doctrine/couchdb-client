@@ -41,9 +41,9 @@ abstract class AbstractHTTPClient implements Client
      * @param string $username
      * @param string $password
      * @param string $ip
-     * @return void
+     * @param float $timeout
      */
-    public function __construct( $host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null )
+    public function __construct( $host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null, $timeout = 0.01 )
     {
         $this->options['host']     = (string) $host;
         $this->options['port']     = (int) $port;
@@ -55,6 +55,8 @@ abstract class AbstractHTTPClient implements Client
         } else {
             $this->options['ip'] = $ip;
         }
+
+        $this->options['timeout'] = (float) $timeout;
     }
 
     /**
