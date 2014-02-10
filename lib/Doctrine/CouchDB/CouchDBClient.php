@@ -86,7 +86,7 @@ class CouchDBClient
             ));
         }
         $connectionClass = self::$clients[$options['type']];
-        $connection = new $connectionClass($options['host'], $options['port'], $options['user'], $options['password'], $options['ip']);
+        $connection = new $connectionClass($options['host'], $options['port'], $options['user'], $options['password'], $options['ip'], $options['timeout']);
         if ($options['logging'] === true) {
             $connection = new HTTP\LoggingClient($connection);
         }
