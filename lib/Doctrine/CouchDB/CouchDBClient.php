@@ -77,7 +77,7 @@ class CouchDBClient
             throw new \InvalidArgumentException("'dbname' is a required option to create a CouchDBClient");
         }
 
-        $defaults = array('type' => 'socket', 'host' => 'localhost', 'port' => 5984, 'user' => null, 'password' => null, 'ip' => null, 'logging' => false);
+        $defaults = array('type' => 'socket', 'host' => 'localhost', 'port' => 5984, 'user' => null, 'password' => null, 'ip' => null, 'logging' => false, 'timeout' => 0.01);
         $options = array_merge($defaults, $options);
 
         if (!isset(self::$clients[$options['type']])) {
