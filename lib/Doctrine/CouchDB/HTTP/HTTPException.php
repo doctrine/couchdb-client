@@ -55,6 +55,8 @@ class HTTPException extends \Doctrine\CouchDB\CouchDBException
      */
     public static function fromResponse( $path, Response $response )
     {
+        $response = self::fixCloudantBulkCustomError($response);
+
         if (!isset($response->body['error'])) {
             $response->body['error'] = '';
         }
@@ -64,5 +66,15 @@ class HTTPException extends \Doctrine\CouchDB\CouchDBException
                 . "requesting " . $path . ". Error: " . $response->body['error']
                 . " " . $response->body['reason'],
             $response->status );
+    }
+
+    private static function fixCloudantBulkCustomError($response)
+    {
+        if (isset($response->body[0]['error']) && isset($response->body[0]['reason'])) {
+            $response->body['error'] = $response->body[0]['error'];
+            $response->body['reason'] = $response->body[0]['reason'];
+        }
+
+        return $response;
     }
 }
