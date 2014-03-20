@@ -43,7 +43,7 @@ class CouchDBClient
      *
      * @string
      */
-    private $databaseName;
+    protected $databaseName;
 
     /**
      * The underlying HTTP Connection of the used DocumentManager.
@@ -90,7 +90,7 @@ class CouchDBClient
         if ($options['logging'] === true) {
             $connection = new HTTP\LoggingClient($connection);
         }
-        return new self($connection, $options['dbname']);
+        return new static($connection, $options['dbname']);
     }
 
     /**
