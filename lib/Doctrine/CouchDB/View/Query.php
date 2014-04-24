@@ -29,6 +29,13 @@ namespace Doctrine\CouchDB\View;
  */
 class Query extends AbstractQuery
 {
+    private $paramsToEncode = array(
+        'key' => true,
+        'keys' => true,
+        'startkey' => true,
+        'endkey' => true
+    );
+
     protected function createResult($response)
     {
         return new Result($response->body);
@@ -38,10 +45,20 @@ class Query extends AbstractQuery
     {
         $arguments = array();
         foreach ($this->params as $key => $value) {
-            if ($key === 'stale') {
-                $arguments[$key] = $value;
-            } else {
+            if (array_key_exists($key, $this->paramsToEncode)) {
                 $arguments[$key] = json_encode($value);
+            } else {
+                /*
+                Explicitly converts boolean values to their string
+                counterparts, since it looks like otherwise http_build_query
+                "conveniently" converts them to 1 or 0 which CouchDB
+                does not understand
+                */
+                if (is_bool($value)) {
+                    $value = $value ? 'true' : 'false';
+                }
+
+                $arguments[$key] = $value;
             }
         }
 
