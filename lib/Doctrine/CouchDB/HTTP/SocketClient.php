@@ -50,10 +50,31 @@ class SocketClient extends AbstractHTTPClient
      */
     protected function checkConnection()
     {
+        // Setting Connection scheme according ssl support
+        if ($this->options['ssl'])
+        {
+            if (!extension_loaded('openssl')) {
+                // no openssl extension loaded.
+                // This is a bit hackisch...
+                $this->connection = null;
+
+                throw HTTPException::connectionFailure(
+                    $this->options['ip'],
+                    $this->options['port'],
+                    "ssl activated without openssl extension loaded",
+                    0
+                );
+            }
+
+            $scheme = 'ssl://';
+        }
+        else
+            $scheme = '';
+
         // If the connection could not be established, fsockopen sadly does not
         // only return false (as documented), but also always issues a warning.
         if ( ( $this->connection === null ) &&
-             ( ( $this->connection = @fsockopen( $this->options['ip'], $this->options['port'], $errno, $errstr ) ) === false ) )
+             ( ( $this->connection = @fsockopen($scheme . $this->options['host'], $this->options['port'], $errno, $errstr) ) === false ) )
         {
             // This is a bit hackisch...
             $this->connection = null;
@@ -64,6 +85,7 @@ class SocketClient extends AbstractHTTPClient
                 $errno
             );
         }
+
     }
 
     /**
