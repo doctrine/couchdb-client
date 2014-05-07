@@ -51,8 +51,7 @@ class SocketClient extends AbstractHTTPClient
     protected function checkConnection()
     {
         // Setting Connection scheme according ssl support
-        if ($this->options['ssl'])
-        {
+        if ($this->options['ssl']) {
             if (!extension_loaded('openssl')) {
                 // no openssl extension loaded.
                 // This is a bit hackisch...
