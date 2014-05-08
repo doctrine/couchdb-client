@@ -64,16 +64,17 @@ class SocketClient extends AbstractHTTPClient
                     0
                 );
             }
-
-            $scheme = 'ssl://';
+            
+            $host = 'ssl://' . $this->options['host'];
+            
+        } else {
+        	$host = $this->options['ip'];       
         }
-        else
-            $scheme = '';
 
         // If the connection could not be established, fsockopen sadly does not
         // only return false (as documented), but also always issues a warning.
         if ( ( $this->connection === null ) &&
-             ( ( $this->connection = @fsockopen($scheme . $this->options['host'], $this->options['port'], $errno, $errstr) ) === false ) )
+             ( ( $this->connection = @fsockopen($host, $this->options['port'], $errno, $errstr) ) === false ) )
         {
             // This is a bit hackisch...
             $this->connection = null;
