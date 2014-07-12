@@ -30,9 +30,9 @@ class LuceneQuery extends AbstractQuery
     protected function getHttpQuery()
     {
         return sprintf(
-            "/%s/%s/_design/%s/%s?%s",
-            $this->databaseName,
+            "/%s/local/%s/_design/%s/%s?%s",
             $this->handlerName,
+            $this->databaseName,
             $this->designDocumentName,
             $this->viewName,
             http_build_query( $this->params )
