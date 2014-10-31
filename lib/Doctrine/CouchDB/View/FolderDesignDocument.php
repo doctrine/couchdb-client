@@ -40,6 +40,8 @@ class FolderDesignDocument implements DesignDocument
                     }
                 }
             }
+
+            $this->data['language'] = 'javascript';
         }
 
         return $this->data;
