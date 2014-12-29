@@ -15,6 +15,7 @@ Simple API that wraps around CouchDBs HTTP API.
 * Query Changes Feed
 * Compaction Info and Triggering APIs
 * Replication API
+* Manage Attachments
 * Symfony Console Commands
 
 ## Installation

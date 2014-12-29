@@ -2,6 +2,7 @@
 
 namespace Doctrine\Tests\CouchDB\Functional;
 
+use Doctrine\CouchDB\Attachment;
 use Doctrine\CouchDB\View\FolderDesignDocument;
 
 class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
@@ -224,5 +225,43 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $result = $query->execute();
 
         $client->compactView('test-design-doc-query');
+    }
+
+    public function testAttachments()
+    {
+        $docId = "foo-bar-baz-the-second";
+        $attachmentName = "a-file.txt";
+
+        $content = "A plain text attachment";
+        $type = "text/plain";
+
+        $client = $this->couchClient;
+        list($id, $rev) = $client->putDocument(array("foo" => "bar"), $docId);
+
+        $attachment = Attachment::createFromBinaryData($content, $type);
+
+        // put
+        list($id, $status, $rev) = $client->putAttachment($attachment, $id, $attachmentName, $rev);
+
+        // get via direct call
+        $responseAttachment = $client->getAttachment($docId, $attachmentName);
+        $this->assertEquals($content, $responseAttachment->getRawData());
+        $this->assertEquals($type, $responseAttachment->getContentType());
+
+        // get via document
+        $response = $client->findDocument($id);
+        $attachments = $response->body['_attachments'];
+        $this->assertTrue(is_array($attachments));
+        $responseAttachment = $client->constructAttachment(current($attachments), $docId, $attachmentName);
+        $this->assertEquals($content, $responseAttachment->getRawData());
+        $this->assertEquals($type, $responseAttachment->getContentType());
+
+        // delete
+        list($id, $rev) = $client->deleteAttachment($docId, $attachmentName, $rev);
+        $responseAttachment = $client->getAttachment($docId, $attachmentName);
+        $this->assertEquals(null, $responseAttachment);
+
+        //tidy
+        $client->deleteDocument($id, $rev);
     }
 }
