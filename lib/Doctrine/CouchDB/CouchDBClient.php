@@ -180,9 +180,12 @@ class CouchDBClient
      *
      * @param int|null $limit
      * @param string|null $startKey
+     * @param string|null $endKey
+     * @param int|null $skip
+     * @param bool $descending
      * @return HTTP\Response
      */
-    public function allDocs($limit = null, $startKey = null)
+    public function allDocs($limit = null, $startKey = null, $endKey = null, $skip = null, $descending = false)
     {
         $allDocsPath = '/' . $this->databaseName . '/_all_docs?include_docs=true';
         if ($limit) {
@@ -190,6 +193,15 @@ class CouchDBClient
         }
         if ($startKey) {
             $allDocsPath .= '&startkey="' . (string)$startKey.'"';
+        }
+        if (!is_null($endKey)) {
+            $allDocsPath .= '&endkey="' . (string)$endKey.'"';
+        }
+        if (!is_null($skip) && (int)$skip > 0) {
+            $allDocsPath .= '&skip=' . (int)$skip;
+        }
+        if (!is_null($descending) && (bool)$descending === true) {
+            $allDocsPath .= '&descending=true';
         }
         return $this->httpClient->request('GET', $allDocsPath);
     }

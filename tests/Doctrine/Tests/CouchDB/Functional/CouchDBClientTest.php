@@ -237,6 +237,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         list($firstId, $firstRev) = $client->postDocument(array("foo" => "bar"));
         list($secondId, $secondRev) = $client->postDocument(array("alpha" => "beta"));
 
+        // Everything
         $response = $client->allDocs();
 
         $this->assertEquals(200, $response->status);
@@ -245,15 +246,31 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         // Limit
         $response = $client->allDocs(1);
-
-        $this->assertEquals(200, $response->status);
         $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
         $this->assertTrue(strpos(json_encode($response->body), $secondId) == 0);
 
         // Start key
         $response = $client->allDocs(null, $secondId);
+        $this->assertTrue(strpos(json_encode($response->body), $firstId) == 0);
+        $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
 
-        $this->assertEquals(200, $response->status);
+        // End key
+        $response = $client->allDocs(null, null, $firstId);
+        $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
+        $this->assertTrue(strpos(json_encode($response->body), $secondId) == 0);
+
+        // Skip
+        $response = $client->allDocs(null, null, null, 1);
+        $this->assertTrue(strpos(json_encode($response->body), $firstId) == 0);
+        $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
+
+        // Skip, Descending
+        $response = $client->allDocs(null, null, null, 1, true);
+        $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
+        $this->assertTrue(strpos(json_encode($response->body), $secondId) == 0);
+
+        // Limit, Descending
+        $response = $client->allDocs(1, null, null, null, true);
         $this->assertTrue(strpos(json_encode($response->body), $firstId) == 0);
         $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
 
