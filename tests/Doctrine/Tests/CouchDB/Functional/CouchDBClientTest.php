@@ -225,4 +225,42 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $client->compactView('test-design-doc-query');
     }
+
+    public function testAllDocs()
+    {
+        $client = $this->couchClient;
+
+        // Start clean
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+
+        list($firstId, $firstRev) = $client->postDocument(array("foo" => "bar"));
+        list($secondId, $secondRev) = $client->postDocument(array("alpha" => "beta"));
+
+        $response = $client->allDocs();
+
+        $this->assertEquals(200, $response->status);
+        $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
+        $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
+
+        // Limit
+        $response = $client->allDocs(1);
+
+        $this->assertEquals(200, $response->status);
+        $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
+        $this->assertTrue(strpos(json_encode($response->body), $secondId) == 0);
+
+        // Start key
+        $response = $client->allDocs(null, $secondId);
+
+        $this->assertEquals(200, $response->status);
+        $this->assertTrue(strpos(json_encode($response->body), $firstId) == 0);
+        $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
+
+
+
+        // tidy
+        $client->deleteDocument($firstId, $firstRev);
+        $client->deleteDocument($secondId, $secondRev);
+    }
 }
