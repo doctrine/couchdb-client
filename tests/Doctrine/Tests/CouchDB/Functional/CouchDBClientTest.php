@@ -2,6 +2,7 @@
 
 namespace Doctrine\Tests\CouchDB\Functional;
 
+use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\CouchDB\View\FolderDesignDocument;
 
 class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
@@ -224,5 +225,96 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $result = $query->execute();
 
         $client->compactView('test-design-doc-query');
+    }
+
+    public function testFindDocuments()
+    {
+        $client = $this->couchClient;
+
+        // Recreate DB
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+
+        $ids = array();
+        $expectedRows = array();
+        foreach (range(1, 3) as $i) {
+            list($id, $rev) = $client->postDocument(array('foo' => 'bar' . $i));
+            $ids[] = $id;
+            // This structure might be dependent from couchdb version. Tested against v1.6.1
+            $expectedRows[] = array(
+                'id' => $id,
+                'value' => array(
+                    'rev' => $rev,
+                ),
+                'doc' => array(
+                    '_id' => $id,
+                    '_rev' => $rev,
+                    'foo' => 'bar' . $i,
+                ),
+                'key' => $id,
+            );
+        }
+
+        $response = $client->findDocuments($ids);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
+
+        $response = $client->findDocuments($ids, 0);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
+
+        $response = $client->findDocuments($ids, 1);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0])), $response->body);
+
+        $response = $client->findDocuments($ids, 0, 2);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[2])), $response->body);
+
+        $response = $client->findDocuments($ids, 1, 1);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[1])), $response->body);
+    }
+
+    public function testAllDocs()
+    {
+        $client = $this->couchClient;
+
+        // Recreate DB
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+
+        $ids = array();
+        $expectedRows = array();
+        foreach (range(1, 3) as $i) {
+            list($id, $rev) = $client->postDocument(array('foo' => 'bar' . $i));
+            $ids[] = $id;
+            // This structure might be dependent from couchdb version. Tested against v1.6.1
+            $expectedRows[] = array(
+                'id' => $id,
+                'value' => array(
+                    'rev' => $rev,
+                ),
+                'doc' => array(
+                    '_id' => $id,
+                    '_rev' => $rev,
+                    'foo' => 'bar' . $i,
+                ),
+                'key' => $id,
+            );
+        }
+
+        $response = $client->allDocs();
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
+
+        $response = $client->allDocs(0);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
+
+        $response = $client->allDocs(1);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0])), $response->body);
+
+        $response = $client->allDocs(2);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0], $expectedRows[1])), $response->body);
+
+        $response = $client->allDocs(0, $ids[1]);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 1, 'rows' => array($expectedRows[1], $expectedRows[2])), $response->body);
+
+        $response = $client->allDocs(1, $ids[2]);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 2, 'rows' => array($expectedRows[2])), $response->body);
     }
 }
