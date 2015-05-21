@@ -317,4 +317,30 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $response = $client->allDocs(1, $ids[2]);
         $this->assertEquals(array('total_rows' => 3, 'offset' => 2, 'rows' => array($expectedRows[2])), $response->body);
     }
+
+    public function testGetActiveTasks()
+    {
+        $client = $this->couchClient;
+        $active_tasks = $client->getActiveTasks();
+        $this->assertEquals(array(), $active_tasks);
+
+        $sourceDatabase = $this->getTestDatabase();
+        $targetDatabase1 = $this->getTestDatabase() . 'target1';
+        $targetDatabase2 = $this->getTestDatabase() . 'target2';
+        $this->couchClient->createDatabase($targetDatabase1);
+        $this->couchClient->createDatabase($targetDatabase2);
+
+        $client->replicate($sourceDatabase, $targetDatabase1, null, true);
+        $active_tasks = $client->getActiveTasks();
+        $this->assertTrue(count($active_tasks) == 1);
+
+        $client->replicate($sourceDatabase, $targetDatabase2, null, true);
+        $active_tasks = $client->getActiveTasks();
+        $this->assertTrue(count($active_tasks) == 2);
+
+        $client->replicate($sourceDatabase, $targetDatabase1, true, true);
+        $client->replicate($sourceDatabase, $targetDatabase2, true, true);
+        $active_tasks = $client->getActiveTasks();
+        $this->assertEquals(array(), $active_tasks);
+    }
 }

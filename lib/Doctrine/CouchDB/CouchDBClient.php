@@ -527,4 +527,19 @@ class CouchDBClient
         }
         return $response->body;
     }
+
+    /**
+     * GET /_active_tasks
+     *
+     * @return array
+     * @throws HTTPException
+     */
+    public function getActiveTasks()
+    {
+        $response = $this->httpClient->request('GET', '/_active_tasks');
+        if ($response->status != 200) {
+            throw HTTPException::fromResponse('/_active_tasks', $response);
+        }
+        return $response->body;
+    }
 }
