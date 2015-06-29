@@ -343,4 +343,56 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $active_tasks = $client->getActiveTasks();
         $this->assertEquals(array(), $active_tasks);
     }
+
+    public function testGetRevisionDifference()
+    {
+        $client = $this->couchClient;
+        $mapping = array (
+            'baz' =>
+                array (
+                    0 => '2-7051cbe5c8faecd085a3fa619e6e6337',
+                ),
+            'foo' =>
+                array (
+                    0 => '3-6a540f3d701ac518d3b9733d673c5484',
+                ),
+            'bar' =>
+                array (
+                    0 => '1-d4e501ab47de6b2000fc8a02f84a0c77',
+                    1 => '1-967a00dff5e02add41819138abb3284d',
+                ),
+        );
+        $revisionDifference = array (
+            'baz' =>
+                array (
+                    'missing' =>
+                        array (
+                            0 => '2-7051cbe5c8faecd085a3fa619e6e6337',
+                        ),
+                ),
+            'foo' =>
+                array (
+                    'missing' =>
+                        array (
+                            0 => '3-6a540f3d701ac518d3b9733d673c5484',
+                        ),
+                ),
+            'bar' =>
+                array (
+                    'missing' =>
+                        array (
+                            0 => '1-d4e501ab47de6b2000fc8a02f84a0c77',
+                            1 => '1-967a00dff5e02add41819138abb3284d',
+                        ),
+                ),
+        );
+
+        list($id, $rev) = $client->putDocument(array("name" => "test"), 'foo');
+        $mapping['foo'][] = $rev;
+        $revDiff = $client->getRevisionDifference($mapping);
+        if (isset($revDiff['foo']['possible_ancestors'])) {
+            $revisionDifference['foo']['possible_ancestors'] = $revDiff['foo']['possible_ancestors'];
+        }
+        $this->assertEquals($revisionDifference, $revDiff);
+    }
 }
