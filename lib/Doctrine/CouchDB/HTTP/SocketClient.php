@@ -91,14 +91,15 @@ class SocketClient extends AbstractHTTPClient
     /**
      * Build a HTTP 1.1 request
      *
-     * Build the HTTP 1.1 request headers from the gicven input.
+     * Build the HTTP 1.1 request headers from the given input.
      *
      * @param string $method
      * @param string $path
      * @param string $data
+     * @param array $headers
      * @return string
      */
-    protected function buildRequest( $method, $path, $data )
+    protected function buildRequest( $method, $path, $data, $headers)
     {
         // Create basic request headers
         $request = "$method $path HTTP/1.1\r\nHost: {$this->options['host']}\r\n";
@@ -112,10 +113,19 @@ class SocketClient extends AbstractHTTPClient
         }
 
         // Set keep-alive header, which helps to keep to connection
-        // initilization costs low, especially when the database server is not
+        // initialization costs low, especially when the database server is not
         // available in the locale net.
         $request .= "Connection: " . ( $this->options['keep-alive'] ? 'Keep-Alive' : 'Close' ) . "\r\n";
-        $request .= "Content-type: application/json\r\n";
+
+        if (!isset($headers['Content-Type'])) {
+            $headers['Content-Type'] = 'application/json';
+        }
+        foreach ($headers as $key => $value) {
+            if (is_bool($value) === true) {
+                $value = ($value) ? 'true': 'false';
+            }
+            $request .= $key . ": ". $value . "\r\n";
+        }
 
         // Also add headers and request body if data should be sent to the
         // server. Otherwise just add the closing mark for the header section
@@ -123,7 +133,7 @@ class SocketClient extends AbstractHTTPClient
         if ( $data !== null )
         {
             $request .= "Content-Length: " . strlen( $data ) . "\r\n\r\n";
-            $request .= "$data";
+            $request .= $data;
         }
         else
         {
@@ -139,21 +149,22 @@ class SocketClient extends AbstractHTTPClient
      * Perform a request to the server and return the result converted into a
      * Response object. If you do not expect a JSON structure, which
      * could be converted in such a response object, set the forth parameter to
-     * true, and you get a response object retuerned, containing the raw body.
+     * true, and you get a response object returned, containing the raw body.
      *
      * @param string $method
      * @param string $path
      * @param string $data
      * @param bool $raw
+     * @param array $headers
      * @return Response
      */
-    public function request( $method, $path, $data = null, $raw = false )
+    public function request( $method, $path, $data = null, $raw = false, array $headers = array() )
     {
         // Try establishing the connection to the server
         $this->checkConnection();
 
         // Send the build request to the server
-        if ( fwrite( $this->connection, $request = $this->buildRequest( $method, $path, $data ) ) === false )
+        if ( fwrite( $this->connection, $request = $this->buildRequest( $method, $path, $data, $headers ) ) === false )
         {
             // Reestablish which seems to have been aborted
             //
@@ -170,7 +181,7 @@ class SocketClient extends AbstractHTTPClient
             'connection' => ( $this->options['keep-alive'] ? 'Keep-Alive' : 'Close' ),
         );
 
-        // Remove leading newlines, should not accur at all, actually.
+        // Remove leading newlines, should not occur at all, actually.
         while ( ( ( $line = fgets( $this->connection ) ) !== false ) &&
                 ( ( $lineContent = rtrim( $line ) ) === '' ) );
 
@@ -272,7 +283,7 @@ class SocketClient extends AbstractHTTPClient
                 return $this->request( $method, $path, $data, $raw );
         }
 
-        // Create repsonse object from couch db response
+        // Create response object from couch db response
         if ( $headers['status'] >= 400 )
         {
             return new ErrorResponse( $headers['status'], $headers, $body );
