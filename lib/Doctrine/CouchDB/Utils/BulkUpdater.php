@@ -56,6 +56,13 @@ class BulkUpdater
         $this->data['docs'][] = $data;
     }
 
+    public function updateDocuments(array $docs)
+    {
+        foreach ($docs as $doc) {
+            $this->data['docs'][] = (is_array($doc) ? $doc : json_decode($doc, true));
+        }
+    }
+
     public function deleteDocument($id, $rev)
     {
         $this->data['docs'][] = array('_id' => $id, '_rev' => $rev, '_deleted' => true);
