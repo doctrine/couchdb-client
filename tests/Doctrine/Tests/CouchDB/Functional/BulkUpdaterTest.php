@@ -21,14 +21,14 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
     public function setUp()
     {
         $this->couchClient = $this->createCouchDBClientForBulkTest();
-        $this->couchClient->createDatabase($this->getTestDatabase() . "_bulk");
+        $this->couchClient->createDatabase($this->getBulkTestDatabase());
         $this->bulkUpdater = $this->couchClient->createBulkUpdater();
     }
 
     public function testGetPath()
     {
         $this->assertEquals(
-            '/' . $this->getTestDatabase() . '_bulk' . '/_bulk_docs',
+            '/' . $this->getBulkTestDatabase() . '/_bulk_docs',
             $this->bulkUpdater->getpath()
         );
     }
