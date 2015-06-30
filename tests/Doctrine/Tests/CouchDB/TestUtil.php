@@ -11,4 +11,12 @@ class TestUtil
         }
         return 'doctrine_test_database';
     }
+
+    static public function getBulkTestDatabase()
+    {
+        if (isset($GLOBALS['DOCTRINE_COUCHDB_BULK_DATABASE'])) {
+            return $GLOBALS['DOCTRINE_COUCHDB_BULK_DATABASE'];
+        }
+        return 'doctrine_test_database_bulk';
+    }
 }

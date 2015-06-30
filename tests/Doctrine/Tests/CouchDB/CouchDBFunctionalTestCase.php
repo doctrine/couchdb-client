@@ -31,8 +31,18 @@ abstract class CouchDBFunctionalTestCase extends \PHPUnit_Framework_TestCase
         return TestUtil::getTestDatabase();
     }
 
+    public function getBulkTestDatabase()
+    {
+        return TestUtil::getBulkTestDatabase();
+    }
+
     public function createCouchDBClient()
     {
         return new CouchDBClient($this->getHttpClient(), $this->getTestDatabase());
+    }
+
+    public function createCouchDBClientForBulkTest()
+    {
+        return new CouchDBClient($this->getHttpClient(), $this->getBulkTestDatabase());
     }
 }
