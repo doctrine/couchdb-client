@@ -54,8 +54,8 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
         $response = $this->bulkUpdater->execute();
         $revTest1 = $response->body[0]["rev"];
 
-        //test with all_or_nothing=false
-        //try to update one doc with wrong or no _rev. Only test1 should be updated.
+        // Test with all_or_nothing=false.
+        // Try to update one doc with wrong or no _rev say test2. Only test1 should be updated.
         $bulkUpdater2 = $this->couchClient->createBulkUpdater();
         $bulkUpdater2->setAllOrNothing(false);
         $docs2 = $docs;
@@ -68,9 +68,9 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
         $this->assertEquals(true, isset($response->body[0]["ok"]));
         $this->assertEquals(false, isset($response->body[1]["ok"]));
 
-        //test with all_or_nothing=true
-        //try to update one doc with wrong or no _rev. Still both doc should get updated in case if there is any update
-        // at all.
+        // Test with all_or_nothing=true.
+        // Try to update one doc with wrong or no _rev say test2. Still both doc should get updated in case if there is
+        // any update at all.
         $bulkUpdater3 = $this->couchClient->createBulkUpdater();
         $bulkUpdater3->setAllOrNothing(true);
         $docs3 = $docs;
@@ -94,7 +94,7 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
         $this->bulkUpdater->updateDocument($doc);
         $response = $this->bulkUpdater->execute();
         $response = $this->couchClient->findDocument("test1");
-        //_rev remains same
+        // _rev remains same.
         $this->assertEquals($doc, $response->body);
 
     }
@@ -110,7 +110,7 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
         $this->bulkUpdater->updateDocument($docs["test2"]);
         $response = $this->bulkUpdater->execute();
 
-        //insert the rev values
+        // Insert the rev values.
         foreach ($response->body as $res) {
             $docs[$res['id']]['_rev'] = $res['rev'];
         }
@@ -132,7 +132,7 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
         $this->bulkUpdater->updateDocuments($docs);
         $response = $this->bulkUpdater->execute();
 
-        //insert the rev values
+        // Insert the rev values.
         foreach ($response->body as $res) {
             $id = $res['id'];
             if ($id == 'test1') {
