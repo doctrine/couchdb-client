@@ -27,13 +27,16 @@ interface Client
      * Perform a request to the server and return the result converted into a
      * Response object. If you do not expect a JSON structure, which
      * could be converted in such a response object, set the fourth parameter to
-     * true, and you get a response object retuerned, containing the raw body.
+     * true, and you get a response object returned, containing the raw body.
+     * Optional HTTP request headers can be passed in an array using the fifth
+     * parameter.
      *
      * @param string $method
      * @param string $path
      * @param string $data
      * @param bool $raw
+     * @param array $headers
      * @return Response
      */
-    function request( $method, $path, $data = null, $raw = false );
+    function request( $method, $path, $data = null, $raw = false, array $headers = array() );
 }

@@ -282,7 +282,7 @@ class CouchDBClient
     /**
      * Get changes.
      *
-     * @param  array $params
+     * @param array $params
      * @return array
      * @throws HTTPException
      */
@@ -290,20 +290,26 @@ class CouchDBClient
     {
         $path = '/' . $this->databaseName . '/_changes';
 
-        if (count($params) > 0) {
+        $method = ((!isset($params['doc_ids']) || $params['doc_ids'] == null) ? "GET" : "POST");
+        $response = '';
+
+        if ($method == "GET") {
 
             foreach ($params as $key => $value) {
                 if (isset($params[$key]) === true && is_bool($value) === true) {
                     $params[$key] = ($value) ? 'true': 'false';
                 }
             }
+            if (count($params) > 0) {
+                $query = http_build_query($params);
+                $path = $path.'?'.$query;
+            }
+            $response = $this->httpClient->request('GET', $path);
 
-            $query = http_build_query($params);
-            $path = $path.'?'.$query;
+        } else {
+            $path .= '?filter=_doc_ids';
+            $response = $this->httpClient->request('POST', $path, json_encode($params));
         }
-
-        $response = $this->httpClient->request('GET', $path);
-
         if ($response->status != 200) {
             throw HTTPException::fromResponse($path, $response);
         }
@@ -539,6 +545,23 @@ class CouchDBClient
         $response = $this->httpClient->request('GET', '/_active_tasks');
         if ($response->status != 200) {
             throw HTTPException::fromResponse('/_active_tasks', $response);
+        }
+        return $response->body;
+    }
+
+    /**
+     * Get revision difference.
+     *
+     * @param  array $data
+     * @return array
+     * @throws HTTPException
+     */
+    public function getRevisionDifference($data)
+    {
+        $path = '/' . $this->databaseName . '/_revs_diff';
+        $response = $this->httpClient->request('POST', $path, json_encode($data));
+        if ($response->status != 200) {
+            throw HTTPException::fromResponse($path, $response);
         }
         return $response->body;
     }

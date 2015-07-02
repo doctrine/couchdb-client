@@ -34,6 +34,8 @@ class BulkUpdater
 {
     private $data = array('docs' => array());
 
+    private $requestHeaders = array();
+
     private $httpClient;
 
     private $databaseName;
@@ -54,14 +56,31 @@ class BulkUpdater
         $this->data['docs'][] = $data;
     }
 
+    public function updateDocuments(array $docs)
+    {
+        foreach ($docs as $doc) {
+            $this->data['docs'][] = (is_array($doc) ? $doc : json_decode($doc, true));
+        }
+    }
+
     public function deleteDocument($id, $rev)
     {
         $this->data['docs'][] = array('_id' => $id, '_rev' => $rev, '_deleted' => true);
     }
 
+    public function setNewEdits($newEdits)
+    {
+        $this->data["new_edits"] = (bool)$newEdits;
+    }
+
+    public function setFullCommitHeader($commit)
+    {
+        $this->requestHeaders['X-Couch-Full-Commit'] = (bool)$commit;
+    }
+
     public function execute()
     {
-        return $this->httpClient->request('POST', $this->getPath(), json_encode($this->data));
+        return $this->httpClient->request('POST', $this->getPath(), json_encode($this->data), false, $this->requestHeaders);
     }
 
     public function getPath()
