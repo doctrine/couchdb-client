@@ -412,4 +412,100 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         }
         $this->assertEquals($revisionDifference, $revDiff);
     }
+
+    /**
+     * @depends testCreateBulkUpdater
+     */
+
+    public function testTransferChangedDocuments()
+    {
+        $client = $this->couchClient;
+
+        // Recreate DB
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+
+
+        $id = 'multiple_attachments';
+
+        // Document with attachments.
+        $docWithAttachment = array (
+            '_id' => $id,
+            '_rev' => '1-abc',
+            '_attachments' =>
+                array (
+                    'foo.txt' =>
+                        array (
+                            'content_type' => 'text/plain',
+                            'data' => 'VGhpcyBpcyBhIGJhc2U2NCBlbmNvZGVkIHRleHQ=',
+                        ),
+                    'bar.txt' =>
+                        array (
+                            'content_type' => 'text/plain',
+                            'data' => 'VGhpcyBpcyBhIGJhc2U2NCBlbmNvZGVkIHRleHQ=',
+                        ),
+                ),
+        );
+
+        // Doc without any attachment. The id of both the docs is same.
+        // So we will get two leaf revisions.
+        $doc = array("_id" => $id, "foo" => "bar", "_rev" => "1-bcd");
+
+        // Add the documents to the test db.
+        $updater = $this->couchClient->createBulkUpdater();
+        $updater->updateDocument($docWithAttachment);
+        $updater->updateDocument($doc);
+        // Use the supplied _rev.
+        $updater->setNewEdits(false);
+        $response = $updater->execute();
+
+
+        // Create the copy database and a copyClient to interact with it.
+        $copyDb = $this->getTestDatabase() . '_copy';
+        $client->createDatabase($copyDb);
+        $copyClient = new CouchDBClient($client->getHttpClient(), $copyDb);
+
+        $missingRevs = array('1-abc','1-bcd');
+        // Transfer the missing revisions from the source to
+        // the target.
+        list($docStack, $responses) = $client->transferChangedDocuments($id, $missingRevs, $copyClient);
+
+        // $docStack should contain the doc that
+        // didn't have attachment.
+        $this->assertEquals(1, count($docStack));
+        $this->assertEquals($doc, json_decode($docStack[0],true));
+
+        // The doc with attachment should have been
+        // copied to the copyDb.
+        $this->assertEquals(1, count($responses));
+        $this->assertArrayHasKey("ok", $responses[0]);
+        $this->assertEquals(true, $responses[0]["ok"]);
+        // Clean up.
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+        $client->deleteDatabase($copyDb);
+    }
+
+    /**
+     * @depends testGetChanges
+     */
+
+    public function testGetChangesAsStream()
+    {
+        $client = $this->couchClient;
+        // Stream of changes feed.
+        $stream = $client->getChangesAsStream();
+
+        list($id, $rev) = $client->postDocument(array("_id" => "stream1", "foo" => "bar"));
+        // Get the change feed data for stream1.
+        while(trim($line = fgets($stream)) == '');
+        $this->assertEquals("stream1", json_decode($line, true)["id"]);
+
+        list($id, $rev) = $client->postDocument(array("_id" => "stream2", "foo" => "bar"));
+        // Get the change feed data for stream2.
+        while(trim($line = fgets($stream)) == '');
+        $this->assertEquals("stream2", json_decode($line, true)["id"]);
+
+        fclose($stream);
+    }
 }

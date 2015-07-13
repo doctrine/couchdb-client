@@ -39,6 +39,12 @@ class SocketClient extends AbstractHTTPClient
      */
     protected $connection;
 
+    public function getConnection()
+    {
+        $this->checkConnection();
+        return $this->connection;
+    }
+
     /**
      * Check for server connection
      *
@@ -99,7 +105,7 @@ class SocketClient extends AbstractHTTPClient
      * @param array $headers
      * @return string
      */
-    protected function buildRequest( $method, $path, $data, $headers)
+    public function buildRequest( $method, $path, $data = null, array $headers = array())
     {
         // Create basic request headers
         $request = "$method $path HTTP/1.1\r\nHost: {$this->options['host']}\r\n";

@@ -91,5 +91,15 @@ abstract class AbstractHTTPClient implements Client
             throw new \InvalidArgumentException( "Unknown option $option." );
         }
     }
+
+    /**
+     * Get the connection options.
+     *
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
 }
 
