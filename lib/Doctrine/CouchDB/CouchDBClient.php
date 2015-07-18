@@ -299,7 +299,7 @@ class CouchDBClient
 
             foreach ($params as $key => $value) {
                 if (isset($params[$key]) === true && is_bool($value) === true) {
-                    $params[$key] = ($value) ? 'true': 'false';
+                    $params[$key] = ($value) ? 'true' : 'false';
                 }
             }
             if (count($params) > 0) {
@@ -580,7 +580,7 @@ class CouchDBClient
     public function transferChangedDocuments($docId, $missingRevs, CouchDBClient $target)
     {
         $path = '/' . $this->getDatabase() . '/' . $docId;
-        $params = array('revs' => true ,'latest' => true,'open_revs' => json_encode($missingRevs));
+        $params = array('revs' => true, 'latest' => true, 'open_revs' => json_encode($missingRevs));
         $query = http_build_query($params);
         $path .= '?' . $query;
 
@@ -613,7 +613,7 @@ class CouchDBClient
     public function getChangesAsStream(array $params = array())
     {
         // Set feed to continuous.
-        if (!isset($params['feed']) || $params['feed'] != "continuous") {
+        if (!isset($params['feed']) || $params['feed'] != 'continuous') {
             $params['feed'] = 'continuous';
         }
         $path = '/' . $this->databaseName . '/_changes';
@@ -626,18 +626,18 @@ class CouchDBClient
             $connectionOptions['ip'],
             $connectionOptions['ssl']
         );
-        $method = ((!isset($params['doc_ids']) || $params['docs_ids'] == null) ? "GET" : "POST");
+        $method = ((!isset($params['doc_ids']) || $params['docs_ids'] == null) ? 'GET' : 'POST');
         $stream = null;
 
-        if ($method == "GET") {
+        if ($method == 'GET') {
             foreach ($params as $key => $value) {
                 if (isset($params[$key]) === true && is_bool($value) === true) {
-                    $params[$key] = ($value) ? 'true': 'false';
+                    $params[$key] = ($value) ? 'true' : 'false';
                 }
             }
             if (count($params) > 0) {
                 $query = http_build_query($params);
-                $path = $path.'?'.$query;
+                $path = $path . '?' . $query;
             }
             $stream = $streamClient->getConnection('GET', $path, null);
         } else {

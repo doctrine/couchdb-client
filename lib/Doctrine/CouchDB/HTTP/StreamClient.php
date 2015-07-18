@@ -50,8 +50,12 @@ class StreamClient extends AbstractHTTPClient
      * @return resource
      * @throws HTTPException
      */
-    public function getConnection($method, $path, $data, array $headers = array())
-    {
+    public function getConnection(
+        $method,
+        $path,
+        $data = null,
+        array $headers = array()
+    ) {
         $this->checkConnection($method, $path, $data, $headers);
         return $this->httpFilePointer;
     }
@@ -68,7 +72,7 @@ class StreamClient extends AbstractHTTPClient
     protected function checkConnection($method, $path, $data, $headers)
     {
         $basicAuth = '';
-        if ( $this->options['username'] ) {
+        if ($this->options['username']) {
             $basicAuth .= "{$this->options['username']}:{$this->options['password']}@";
         }
         if (!isset($headers['Content-Type'])) {
@@ -103,7 +107,7 @@ class StreamClient extends AbstractHTTPClient
         }
 
         // Check if connection has been established successfully.
-        if ( $this->httpFilePointer === false ) {
+        if ($this->httpFilePointer === false) {
             $error = error_get_last();
             throw HTTPException::connectionFailure(
                 $this->options['ip'],
@@ -124,7 +128,7 @@ class StreamClient extends AbstractHTTPClient
             $connection = $this->httpFilePointer;
         }
         $headers = array();
-        if($connection !== false) {
+        if ($connection !== false) {
 
             $metaData = stream_get_meta_data($connection);
             // The structure of this array differs depending on PHP compiled with
@@ -162,20 +166,20 @@ class StreamClient extends AbstractHTTPClient
      * @return Response
      * @throws HTTPException
      */
-    public function request( $method, $path, $data = null, $raw = false, array $headers = array())
+    public function request($method, $path, $data = null, $raw = false, array $headers = array())
     {
 
         $this->checkConnection($method, $path, $data, $headers);
 
         // Read request body.
         $body = '';
-        while ( !feof( $this->httpFilePointer ) ) {
-            $body .= fgets( $this->httpFilePointer );
+        while (!feof( $this->httpFilePointer)) {
+            $body .= fgets($this->httpFilePointer);
         }
 
         $headers = $this->getStreamHeaders();
 
-        if ( empty($headers['status']) ) {
+        if (empty($headers['status'])) {
             throw HTTPException::readFailure(
                 $this->options['ip'],
                 $this->options['port'],
@@ -185,11 +189,11 @@ class StreamClient extends AbstractHTTPClient
         }
 
         // Create response object from couch db response.
-        if ( $headers['status'] >= 400 )
+        if ($headers['status'] >= 400)
         {
-            return new ErrorResponse( $headers['status'], $headers, $body );
+            return new ErrorResponse($headers['status'], $headers, $body);
         }
-        return new Response( $headers['status'], $headers, $body, $raw );
+        return new Response($headers['status'], $headers, $body, $raw);
     }
 
 }
