@@ -58,6 +58,9 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $dbs = $this->couchClient->getAllDatabases();
         $this->assertContains($dbName2, $dbs);
+
+        // Tidy
+        $this->couchClient->deleteDatabase($dbName2);
     }
 
     public function testDropMultipleTimesSkips()
@@ -395,6 +398,10 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $client->replicate($sourceDatabase, $targetDatabase2, true, true);
         $active_tasks = $client->getActiveTasks();
         $this->assertEquals(array(), $active_tasks);
+
+        // Tidy
+        $this->couchClient->deleteDatabase($targetDatabase1);
+        $this->couchClient->deleteDatabase($targetDatabase2);
     }
 
     public function testGetRevisionDifference()
