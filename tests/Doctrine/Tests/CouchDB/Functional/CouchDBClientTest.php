@@ -306,7 +306,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $ids = array();
         $expectedRows = array();
         foreach (range(1, 3) as $i) {
-            list($id, $rev) = $client->putDocument(array('foo' => 'bar' . $i), (string)$i);
+            list($id, $rev) = $client->postDocument(array('foo' => 'bar' . $i));
             $ids[] = $id;
             // This structure might be dependent from couchdb version. Tested against v1.6.1
             $expectedRows[] = array(
