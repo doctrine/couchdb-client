@@ -348,6 +348,8 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $sourceDatabase = $this->getTestDatabase();
         $targetDatabase1 = $this->getTestDatabase() . 'target1';
         $targetDatabase2 = $this->getTestDatabase() . 'target2';
+        $this->couchClient->deleteDatabase($targetDatabase1);
+        $this->couchClient->deleteDatabase($targetDatabase2);
         $this->couchClient->createDatabase($targetDatabase1);
         $this->couchClient->createDatabase($targetDatabase2);
 

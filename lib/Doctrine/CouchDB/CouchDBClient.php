@@ -268,9 +268,9 @@ class CouchDBClient
      * @return array
      * @throws HTTPException
      */
-    public function getDatabaseInfo($name)
+    public function getDatabaseInfo($name = null)
     {
-        $response = $this->httpClient->request('GET', '/' . urlencode($name));
+        $response = $this->httpClient->request('GET', '/' . ($name ? urlencode($name) : $this->databaseName));
 
         if ($response->status != 200) {
             throw HTTPException::fromResponse('/' . urlencode($name), $response);
