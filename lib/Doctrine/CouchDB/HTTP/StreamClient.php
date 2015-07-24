@@ -38,20 +38,30 @@ class StreamClient extends AbstractHTTPClient
      * Perform a request to the server and return the result converted into a
      * Response object. If you do not expect a JSON structure, which
      * could be converted in such a response object, set the forth parameter to
-     * true, and you get a response object retuerned, containing the raw body.
+     * true, and you get a response object returned, containing the raw body.
      *
      * @param string $method
      * @param string $path
      * @param string $data
      * @param bool $raw
+     * @param array $headers
      * @return Response
      * @throws HTTPException
      */
-    public function request( $method, $path, $data = null, $raw = false )
+    public function request( $method, $path, $data = null, $raw = false, array $headers = array())
     {
         $basicAuth = '';
         if ( $this->options['username'] ) {
             $basicAuth .= "{$this->options['username']}:{$this->options['password']}@";
+        }
+        if (!isset($headers['Content-Type'])) {
+            $headers['Content-Type'] = 'application/json';
+        }
+        $stringHeader = '';
+        if ($headers != null) {
+            foreach ($headers as $key => $val) {
+                $stringHeader .= $key . ": " . $val . "\r\n";
+            }
         }
 
         // TODO SSL support?
@@ -68,7 +78,7 @@ class StreamClient extends AbstractHTTPClient
                         'max_redirects' => 0,
                         'user_agent'    => 'Doctrine CouchDB ODM $Revision$',
                         'timeout'       => $this->options['timeout'],
-                        'header'        => 'Content-type: application/json',
+                        'header'        => $stringHeader,
                     ),
                 )
             )
@@ -118,12 +128,13 @@ class StreamClient extends AbstractHTTPClient
             );
         }
 
-        // Create repsonse object from couch db response
+        // Create response object from couch db response
         if ( $headers['status'] >= 400 )
         {
             return new ErrorResponse( $headers['status'], $headers, $body );
         }
         return new Response( $headers['status'], $headers, $body, $raw );
     }
+
 }
 

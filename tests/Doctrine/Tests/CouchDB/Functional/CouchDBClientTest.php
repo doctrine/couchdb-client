@@ -2,6 +2,7 @@
 
 namespace Doctrine\Tests\CouchDB\Functional;
 
+use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\CouchDB\View\FolderDesignDocument;
 
 class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
@@ -82,6 +83,10 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertInternalType('array', $data);
         $this->assertArrayHasKey('db_name', $data);
         $this->assertEquals($this->getTestDatabase(), $data['db_name']);
+
+        $notExistedDb = 'not_existed_db';
+        $this->setExpectedException('Doctrine\CouchDB\HTTP\HTTPException','HTTP Error with status 404 occoured while requesting /'.$notExistedDb.'. Error: not_found no_db_file');
+        $this->couchClient->getDatabaseInfo($notExistedDb);
     }
 
     public function testCreateBulkUpdater()
@@ -101,6 +106,23 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $updater->execute();
 
         $changes = $this->couchClient->getChanges();
+        $this->assertArrayHasKey('results', $changes);
+        $this->assertEquals(2, count($changes['results']));
+        $this->assertEquals(2, $changes['last_seq']);
+
+        // Check the doc_ids parameter.
+        $changes = $this->couchClient->getChanges(array(
+            'doc_ids' => array('test1')
+        ));
+        $this->assertArrayHasKey('results', $changes);
+        $this->assertEquals(1, count($changes['results']));
+        $this->assertArrayHasKey('id', $changes['results'][0]);
+        $this->assertEquals('test1', $changes['results'][0]['id']);
+        $this->assertEquals(2, $changes['last_seq']);
+
+        $changes = $this->couchClient->getChanges(array(
+            'doc_ids' => null
+        ));
         $this->assertArrayHasKey('results', $changes);
         $this->assertEquals(2, count($changes['results']));
         $this->assertEquals(2, $changes['last_seq']);
@@ -226,58 +248,204 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $client->compactView('test-design-doc-query');
     }
 
+    public function testFindDocuments()
+    {
+        $client = $this->couchClient;
+
+        // Recreate DB
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+
+        $ids = array();
+        $expectedRows = array();
+        foreach (range(1, 3) as $i) {
+            list($id, $rev) = $client->postDocument(array('foo' => 'bar' . $i));
+            $ids[] = $id;
+            // This structure might be dependent from couchdb version. Tested against v1.6.1
+            $expectedRows[] = array(
+                'id' => $id,
+                'value' => array(
+                    'rev' => $rev,
+                ),
+                'doc' => array(
+                    '_id' => $id,
+                    '_rev' => $rev,
+                    'foo' => 'bar' . $i,
+                ),
+                'key' => $id,
+            );
+        }
+
+        $response = $client->findDocuments($ids);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
+
+        $response = $client->findDocuments($ids, 0);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
+
+        $response = $client->findDocuments($ids, 1);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0])), $response->body);
+
+        $response = $client->findDocuments($ids, 0, 2);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[2])), $response->body);
+
+        $response = $client->findDocuments($ids, 1, 1);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[1])), $response->body);
+    }
+
     public function testAllDocs()
     {
         $client = $this->couchClient;
 
-        // Start clean
+        // Recreate DB
         $client->deleteDatabase($this->getTestDatabase());
         $client->createDatabase($this->getTestDatabase());
 
-        list($firstId, $firstRev) = $client->postDocument(array("foo" => "bar"));
-        list($secondId, $secondRev) = $client->postDocument(array("alpha" => "beta"));
+        $ids = array();
+        $expectedRows = array();
+        foreach (range(1, 3) as $i) {
+            list($id, $rev) = $client->putDocument(array('foo' => 'bar' . $i), (string)$i);
+            $ids[] = $id;
+            // This structure might be dependent from couchdb version. Tested against v1.6.1
+            $expectedRows[] = array(
+                'id' => $id,
+                'value' => array(
+                    'rev' => $rev,
+                ),
+                'doc' => array(
+                    '_id' => $id,
+                    '_rev' => $rev,
+                    'foo' => 'bar' . $i,
+                ),
+                'key' => $id,
+            );
+        }
 
         // Everything
         $response = $client->allDocs();
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
 
-        $this->assertEquals(200, $response->status);
-        $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
-        $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
+        // No Limit
+        $response = $client->allDocs(0);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
 
         // Limit
         $response = $client->allDocs(1);
-        $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
-        $this->assertTrue(strpos(json_encode($response->body), $secondId) == 0);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0])), $response->body);
 
-        // Start key
-        $response = $client->allDocs(null, $secondId);
-        $this->assertTrue(strpos(json_encode($response->body), $firstId) == 0);
-        $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
+        // Limit
+        $response = $client->allDocs(2);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0], $expectedRows[1])), $response->body);
+
+        // Start Key
+        $response = $client->allDocs(0, $ids[1]);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 1, 'rows' => array($expectedRows[1], $expectedRows[2])), $response->body);
+
+        // Start Key with Limit
+        $response = $client->allDocs(1, $ids[2]);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 2, 'rows' => array($expectedRows[2])), $response->body);
+
+
 
         // End key
-        $response = $client->allDocs(null, null, $firstId);
-        $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
-        $this->assertTrue(strpos(json_encode($response->body), $secondId) == 0);
+        $response = $client->allDocs(0, null, $ids[0]);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0])), $response->body);
 
         // Skip
-        $response = $client->allDocs(null, null, null, 1);
-        $this->assertTrue(strpos(json_encode($response->body), $firstId) == 0);
-        $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
+        $response = $client->allDocs(0, null, null, 1);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 1, 'rows' => array($expectedRows[1], $expectedRows[2])), $response->body);
+
+
 
         // Skip, Descending
         $response = $client->allDocs(null, null, null, 1, true);
-        $this->assertTrue(strpos(json_encode($response->body), $firstId) > 0);
-        $this->assertTrue(strpos(json_encode($response->body), $secondId) == 0);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 1, 'rows' => array($expectedRows[1], $expectedRows[0])), $response->body);
 
         // Limit, Descending
         $response = $client->allDocs(1, null, null, null, true);
-        $this->assertTrue(strpos(json_encode($response->body), $firstId) == 0);
-        $this->assertTrue(strpos(json_encode($response->body), $secondId) > 0);
-
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[2])), $response->body);
 
 
         // tidy
-        $client->deleteDocument($firstId, $firstRev);
-        $client->deleteDocument($secondId, $secondRev);
+        $client->deleteDocument($expectedRows[0]['id'], $expectedRows[0]['value']['rev']);
+        $client->deleteDocument($expectedRows[1]['id'], $expectedRows[1]['value']['rev']);
+        $client->deleteDocument($expectedRows[2]['id'], $expectedRows[2]['value']['rev']);
+    }
+
+    public function testGetActiveTasks()
+    {
+        $client = $this->couchClient;
+        $active_tasks = $client->getActiveTasks();
+        $this->assertEquals(array(), $active_tasks);
+
+        $sourceDatabase = $this->getTestDatabase();
+        $targetDatabase1 = $this->getTestDatabase() . 'target1';
+        $targetDatabase2 = $this->getTestDatabase() . 'target2';
+        $this->couchClient->createDatabase($targetDatabase1);
+        $this->couchClient->createDatabase($targetDatabase2);
+
+        $client->replicate($sourceDatabase, $targetDatabase1, null, true);
+        $active_tasks = $client->getActiveTasks();
+        $this->assertTrue(count($active_tasks) == 1);
+
+        $client->replicate($sourceDatabase, $targetDatabase2, null, true);
+        $active_tasks = $client->getActiveTasks();
+        $this->assertTrue(count($active_tasks) == 2);
+
+        $client->replicate($sourceDatabase, $targetDatabase1, true, true);
+        $client->replicate($sourceDatabase, $targetDatabase2, true, true);
+        $active_tasks = $client->getActiveTasks();
+        $this->assertEquals(array(), $active_tasks);
+    }
+
+    public function testGetRevisionDifference()
+    {
+        $client = $this->couchClient;
+        $mapping = array (
+            'baz' =>
+                array (
+                    0 => '2-7051cbe5c8faecd085a3fa619e6e6337',
+                ),
+            'foo' =>
+                array (
+                    0 => '3-6a540f3d701ac518d3b9733d673c5484',
+                ),
+            'bar' =>
+                array (
+                    0 => '1-d4e501ab47de6b2000fc8a02f84a0c77',
+                    1 => '1-967a00dff5e02add41819138abb3284d',
+                ),
+        );
+        $revisionDifference = array (
+            'baz' =>
+                array (
+                    'missing' =>
+                        array (
+                            0 => '2-7051cbe5c8faecd085a3fa619e6e6337',
+                        ),
+                ),
+            'foo' =>
+                array (
+                    'missing' =>
+                        array (
+                            0 => '3-6a540f3d701ac518d3b9733d673c5484',
+                        ),
+                ),
+            'bar' =>
+                array (
+                    'missing' =>
+                        array (
+                            0 => '1-d4e501ab47de6b2000fc8a02f84a0c77',
+                            1 => '1-967a00dff5e02add41819138abb3284d',
+                        ),
+                ),
+        );
+
+        list($id, $rev) = $client->putDocument(array("name" => "test"), 'foo');
+        $mapping['foo'][] = $rev;
+        $revDiff = $client->getRevisionDifference($mapping);
+        if (isset($revDiff['foo']['possible_ancestors'])) {
+            $revisionDifference['foo']['possible_ancestors'] = $revDiff['foo']['possible_ancestors'];
+        }
+        $this->assertEquals($revisionDifference, $revDiff);
     }
 }
