@@ -21,6 +21,8 @@ namespace Doctrine\CouchDB;
 
 use Doctrine\CouchDB\HTTP\Client;
 use Doctrine\CouchDB\HTTP\HTTPException;
+use Doctrine\CouchDB\HTTP\MultipartParserAndSender;
+use Doctrine\CouchDB\HTTP\StreamClient;
 use Doctrine\CouchDB\Utils\BulkUpdater;
 use Doctrine\CouchDB\View\DesignDocument;
 
@@ -297,7 +299,7 @@ class CouchDBClient
 
             foreach ($params as $key => $value) {
                 if (isset($params[$key]) === true && is_bool($value) === true) {
-                    $params[$key] = ($value) ? 'true': 'false';
+                    $params[$key] = ($value) ? 'true' : 'false';
                 }
             }
             if (count($params) > 0) {
@@ -564,5 +566,96 @@ class CouchDBClient
             throw HTTPException::fromResponse($path, $response);
         }
         return $response->body;
+    }
+
+    /**
+     * Transfer missing revisions to the target. The Content-Type of response
+     * from the source should be multipart/mixed.
+     *
+     * @param string $docId
+     * @param array $missingRevs
+     * @param CouchDBClient $target
+     * @return array|HTTP\ErrorResponse|string
+     * @throws HTTPException
+     */
+    public function transferChangedDocuments($docId, $missingRevs, CouchDBClient $target)
+    {
+        $path = '/' . $this->getDatabase() . '/' . $docId;
+        $params = array('revs' => true, 'latest' => true, 'open_revs' => json_encode($missingRevs));
+        $query = http_build_query($params);
+        $path .= '?' . $query;
+
+        $targetPath = '/' . $target->getDatabase() . '/' . $docId . '?new_edits=false';
+
+        $mutltipartHandler = new MultipartParserAndSender($this->getHttpClient(), $target->getHttpClient());
+        return $mutltipartHandler->request(
+            'GET',
+            $path,
+            $targetPath,
+            null,
+            array('Accept' => 'multipart/mixed')
+        );
+
+    }
+
+    /**
+     * Get changes as a stream.
+     *
+     * This method similar to the getChanges() method. But instead of returning
+     * the set of changes, it returns the connection stream from which the response
+     * can be read line by line. This is useful when you want to continuously get changes
+     * as they occur. Filtered changes feed is not supported by this method.
+     *
+     * @param array $params
+     * @param bool $raw
+     * @return resource
+     * @throws HTTPException
+     */
+    public function getChangesAsStream(array $params = array())
+    {
+        // Set feed to continuous.
+        if (!isset($params['feed']) || $params['feed'] != 'continuous') {
+            $params['feed'] = 'continuous';
+        }
+        $path = '/' . $this->databaseName . '/_changes';
+        $connectionOptions = $this->getHttpClient()->getOptions();
+        $streamClient = new StreamClient(
+            $connectionOptions['host'],
+            $connectionOptions['port'],
+            $connectionOptions['username'],
+            $connectionOptions['password'],
+            $connectionOptions['ip'],
+            $connectionOptions['ssl']
+        );
+
+        foreach ($params as $key => $value) {
+            if (isset($params[$key]) === true && is_bool($value) === true) {
+                $params[$key] = ($value) ? 'true' : 'false';
+            }
+        }
+        if (count($params) > 0) {
+            $query = http_build_query($params);
+            $path = $path . '?' . $query;
+        }
+        $stream = $streamClient->getConnection('GET', $path, null);
+
+        $headers = $streamClient->getStreamHeaders($stream);
+        if (empty($headers['status'])) {
+            throw HTTPException::readFailure(
+                $connectionOptions['ip'],
+                $connectionOptions['port'],
+                'Received an empty response or not status code',
+                0
+            );
+        } elseif ($headers['status'] != 200) {
+            $body = '';
+            while (!feof($stream)) {
+                $body .= fgets($stream);
+            }
+            throw HTTPException::fromResponse($path, new Response($headers['status'], $headers, $body));
+        }
+        // Everything seems okay. Return the connection resource.
+        return $stream;
+
     }
 }
