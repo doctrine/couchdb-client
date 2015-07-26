@@ -42,6 +42,7 @@ class StreamClient extends AbstractHTTPClient
 
     /**
      * Return the connection pointer after setting up the stream connection.
+     * The returned resource can later be used to read data in chunks.
      *
      * @param string $method
      * @param string $path

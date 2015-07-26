@@ -41,7 +41,9 @@ class SocketClient extends AbstractHTTPClient
 
     /**
      * Return the socket after setting up the connection to server and writing
-     * the headers.
+     * the headers. The returned resource can later be used to read and
+     * write data in chunks. These should be done without much delay as the
+     * connection might get closed.
      *
      * @return resource
      * @throws HTTPException
@@ -51,7 +53,7 @@ class SocketClient extends AbstractHTTPClient
         $method,
         $path,
         $data = null,
-        array$headers = array()
+        array $headers = array()
     ) {
         $this->checkConnection();
         $stringHeader = $this->buildRequest($method, $path, $data, $headers);

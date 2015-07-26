@@ -93,33 +93,53 @@ class MultipartParserAndSender
         $body = '';
 
         if (empty($sourceResponseHeaders['status'])) {
-            throw HTTPException::readFailure(
-                $this->sourceOptions['ip'],
-                $this->sourceOptions['port'],
-                'Received an empty response or not status code',
-                0
-            );
+            try{
+                // Close the connection resource.
+                fclose($this->sourceConnection);
+            } catch (\Exception $e) {
 
-        } elseif ($sourceResponseHeaders['status'] >= 400) {
+            } finally {
+                throw HTTPException::readFailure(
+                    $this->sourceClient->getOptions()['ip'],
+                    $this->sourceClient->getOptions()['port'],
+                    'Received an empty response or not status code',
+                    0
+                );
+            }
+
+        } elseif ($sourceResponseHeaders['status'] != 200) {
             while (!feof($this->sourceConnection)) {
                 $body .= fgets($this->sourceConnection);
             }
-            return new ErrorResponse(
-                $sourceResponseHeaders['status'],
-                $sourceResponseHeaders,
-                $body
-            );
+            try{
+                fclose($this->sourceConnection);
+            } catch (\Exception $e) {
+
+            } finally {
+                return new ErrorResponse(
+                    $sourceResponseHeaders['status'],
+                    $sourceResponseHeaders,
+                    $body
+                );
+            }
 
         } else {
-            if ($sourceResponseHeaders['status'] == 200) {
-
+            try {
                 // Body is an array containing:
                 // 1) Array of json string documents that don't have
                 //  attachments. These should be posted using the Bulk API.
                 // 2) Responses of posting docs with attachments.
                 $body = $this->parseAndSend($targetPath);
+                return $body;
+            } catch(\Exception $e) {
+                throw $e;
+            } finally {
+                try{
+                    fclose($this->sourceConnection);
+                } catch (\Exception $e) {
+
+                }
             }
-            return $body;
         }
     }
 
@@ -143,8 +163,8 @@ class MultipartParserAndSender
 
     /**
      * Parses multipart data. Returns an array having:
-     * 1) Array of json docs(string) that don't have attachments. These
-     *  should be posted using the Bulk API.
+     * 1) Array of json docs(which are strings) that don't have attachments.
+     * These should be posted using the Bulk API.
      * 2) Responses of posting docs with attachments.
      *
      * @param $targetPath
@@ -191,6 +211,7 @@ class MultipartParserAndSender
                         // Missing revs at the source. Continue till the end
                         // of this document.
                         while (strpos($this->getNextLineFromSourceConnection(), $mainBoundary) === false) ;
+                        continue;
 
                     } else {
 
@@ -263,8 +284,8 @@ class MultipartParserAndSender
 
 
         // Read the json doc. Use _attachments field to find the total
-        // Content-Length and create the request header with initial doc data
-        //. At present CouchDB can't handle chunked data and needs
+        // Content-Length and create the request header with initial doc data.
+        // At present CouchDB can't handle chunked data and needs
         // Content-Length header.
         $str = '';
         $jsonFlag = 0;

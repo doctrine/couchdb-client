@@ -488,19 +488,20 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     public function testGetChangesAsStream()
     {
         $client = $this->couchClient;
+        // Recreate DB
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+
         // Stream of changes feed.
         $stream = $client->getChangesAsStream();
-
         list($id, $rev) = $client->postDocument(array("_id" => "stream1", "foo" => "bar"));
         // Get the change feed data for stream1.
         while(trim($line = fgets($stream)) == '');
         $this->assertEquals("stream1", json_decode($line, true)["id"]);
-
         list($id, $rev) = $client->postDocument(array("_id" => "stream2", "foo" => "bar"));
         // Get the change feed data for stream2.
         while(trim($line = fgets($stream)) == '');
         $this->assertEquals("stream2", json_decode($line, true)["id"]);
-
         fclose($stream);
     }
 }

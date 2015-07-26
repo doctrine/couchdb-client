@@ -569,7 +569,8 @@ class CouchDBClient
     }
 
     /**
-     * Transfer missing revisions to the target.
+     * Transfer missing revisions to the target. The Content-Type of response
+     * from the source should be multipart/mixed.
      *
      * @param string $docId
      * @param array $missingRevs
@@ -603,7 +604,7 @@ class CouchDBClient
      * This method similar to the getChanges() method. But instead of returning
      * the set of changes, it returns the connection stream from which the response
      * can be read line by line. This is useful when you want to continuously get changes
-     * as they occur.
+     * as they occur. Filtered changes feed is not supported by this method.
      *
      * @param array $params
      * @param bool $raw
@@ -626,23 +627,18 @@ class CouchDBClient
             $connectionOptions['ip'],
             $connectionOptions['ssl']
         );
-        $method = ((!isset($params['doc_ids']) || $params['docs_ids'] == null) ? 'GET' : 'POST');
-        $stream = null;
 
-        if ($method == 'GET') {
-            foreach ($params as $key => $value) {
-                if (isset($params[$key]) === true && is_bool($value) === true) {
-                    $params[$key] = ($value) ? 'true' : 'false';
-                }
+        foreach ($params as $key => $value) {
+            if (isset($params[$key]) === true && is_bool($value) === true) {
+                $params[$key] = ($value) ? 'true' : 'false';
             }
-            if (count($params) > 0) {
-                $query = http_build_query($params);
-                $path = $path . '?' . $query;
-            }
-            $stream = $streamClient->getConnection('GET', $path, null);
-        } else {
-            $stream = $streamClient->getConnection('POST', $path, json_encode($params));
         }
+        if (count($params) > 0) {
+            $query = http_build_query($params);
+            $path = $path . '?' . $query;
+        }
+        $stream = $streamClient->getConnection('GET', $path, null);
+
         $headers = $streamClient->getStreamHeaders($stream);
         if (empty($headers['status'])) {
             throw HTTPException::readFailure(
@@ -658,7 +654,7 @@ class CouchDBClient
             }
             throw HTTPException::fromResponse($path, new Response($headers['status'], $headers, $body));
         }
-        // Everything seems okay.
+        // Everything seems okay. Return the connection resource.
         return $stream;
 
     }
