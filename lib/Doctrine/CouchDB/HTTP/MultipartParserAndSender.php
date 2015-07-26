@@ -98,14 +98,14 @@ class MultipartParserAndSender
                 fclose($this->sourceConnection);
             } catch (\Exception $e) {
 
-            } finally {
-                throw HTTPException::readFailure(
-                    $this->sourceClient->getOptions()['ip'],
-                    $this->sourceClient->getOptions()['port'],
-                    'Received an empty response or not status code',
-                    0
-                );
             }
+            throw HTTPException::readFailure(
+                $this->sourceClient->getOptions()['ip'],
+                $this->sourceClient->getOptions()['port'],
+                'Received an empty response or not status code',
+                0
+            );
+
 
         } elseif ($sourceResponseHeaders['status'] != 200) {
             while (!feof($this->sourceConnection)) {
@@ -115,13 +115,12 @@ class MultipartParserAndSender
                 fclose($this->sourceConnection);
             } catch (\Exception $e) {
 
-            } finally {
-                return new ErrorResponse(
-                    $sourceResponseHeaders['status'],
-                    $sourceResponseHeaders,
-                    $body
-                );
             }
+            return new ErrorResponse(
+                $sourceResponseHeaders['status'],
+                $sourceResponseHeaders,
+                $body
+            );
 
         } else {
             try {
@@ -130,15 +129,14 @@ class MultipartParserAndSender
                 //  attachments. These should be posted using the Bulk API.
                 // 2) Responses of posting docs with attachments.
                 $body = $this->parseAndSend($targetPath);
-                return $body;
-            } catch(\Exception $e) {
-                throw $e;
-            } finally {
                 try{
                     fclose($this->sourceConnection);
                 } catch (\Exception $e) {
 
                 }
+                return $body;
+            } catch(\Exception $e) {
+                throw $e;
             }
         }
     }
