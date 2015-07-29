@@ -658,4 +658,20 @@ class CouchDBClient
         return $stream;
 
     }
+
+    /**
+     * Commit any recent changes to the specified database to disk.
+     *
+     * @return array
+     * @throws HTTPException
+     */
+    public function ensureFullCommit()
+    {
+        $path = '/' . $this->databaseName . '/_ensure_full_commit';
+        $response = $this->httpClient->request('POST', $path);
+        if ($response->status != 201) {
+            throw HTTPException::fromResponse($path, $response);
+        }
+        return $response->body;
+    }
 }

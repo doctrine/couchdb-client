@@ -510,4 +510,13 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertEquals("stream2", json_decode($line, true)["id"]);
         fclose($stream);
     }
+
+    public function testEnsureFullCommit()
+    {
+        $client = $this->couchClient;
+        $body = $client->ensureFullCommit();
+        $this->assertArrayHasKey('instance_start_time', $body);
+        $this->assertArrayHasKey('ok', $body);
+        $this->assertEquals(true, $body['ok']);
+    }
 }
