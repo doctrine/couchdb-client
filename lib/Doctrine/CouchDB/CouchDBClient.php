@@ -143,15 +143,39 @@ class CouchDBClient
     }
 
     /**
-     * Find a document by ID and return the HTTP response.
+     * Find a document by ID and return the HTTP response. If
+     * $getAllLeafRevisions is true, documents for all leaf revisions are
+     * retrieved and $revisions parameter is ignored. If $getAllLeafRevisions
+     * is false and $revisions is not null, only the specified leaf revisions
+     * are retrieved.
      *
-     * @param  string $id
+     * @param string $id
+     * @param bool $getAllLeafRevisions
+     * @param array $revisions
      * @return HTTP\Response
      */
-    public function findDocument($id)
-    {
-        $documentPath = '/' . $this->databaseName . '/' . urlencode($id);
-        return $this->httpClient->request( 'GET', $documentPath );
+    public function findDocument(
+        $id,
+        $getAllLeafRevisions = false,
+        array $revisions = null
+    ) {
+        $path = '/' . $this->databaseName . '/' . urlencode($id);
+        if ($getAllLeafRevisions == true) {
+            // Fetch documents of all leaf revisions.
+            $path .= '?open_revs=all';
+        } else if ($revisions != null) {
+            // Fetch documents of only specified leaf revisions.
+            $path .= '?open_revs=' . json_encode($revisions);
+        }
+        // Set the Accept header to application/json to get array as response.
+        // Without this the response is multipart/mixed stream.
+        return $this->httpClient->request(
+            'GET',
+            $path,
+            null,
+            false,
+            array('Accept' => 'application/json')
+        );
     }
 
     /**

@@ -1,7 +1,6 @@
 <?php
 
 namespace Doctrine\Tests\CouchDB\Functional;
-
 use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\CouchDB\View\FolderDesignDocument;
 
@@ -246,6 +245,68 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $result = $query->execute();
 
         $client->compactView('test-design-doc-query');
+    }
+
+    /**
+     * @depends testCreateBulkUpdater
+     */
+    public function testFindDocument()
+    {
+        $client = $this->couchClient;
+
+        // Recreate DB
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+        // Test fetching of document.
+        list($id, $rev) = $client->postDocument(array('foo' => 'bar'));
+        $response = $client->findDocument($id);
+        $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+        $this->assertObjectHasAttribute('body', $response);
+        $body = $response->body;
+        $this->assertEquals(
+            array('_id' => $id, '_rev' => $rev, 'foo' => 'bar'),
+            $body
+        );
+
+        // Test fetching of documents of all revisions. The _id of all the
+        // documents is same. So we will get multiple leaf revisions.
+        $id = 'multiple_revisions';
+        $docs = array(
+            array('_id' => $id, 'foo' => 'bar1', '_rev' => '1-abc'),
+            array('_id' => $id, 'foo' => 'bar2', '_rev' => '1-bcd'),
+            array('_id' => $id, 'foo' => 'bar3', '_rev' => '1-cde')
+        );
+
+        // Add the documents to the test db using Bulk API.
+        $updater = $this->couchClient->createBulkUpdater();
+        $updater->updateDocuments($docs);
+        // Set newedits to false to use the supplied _rev instead of assigning
+        // new ones.
+        $updater->setNewEdits(false);
+        $response = $updater->execute();
+        // The third param should be ignored as all revisions are being fetched.
+        $response = $client->findDocument($id, true, array('3-ghfgf'));
+        $expected = array(
+            array('ok' => $docs[2]),
+            array('ok' => $docs[1]),
+            array('ok' => $docs[0])
+        );
+        $this->assertEquals($expected, $response->body);
+        // Test fetching of specific revisions.
+        $response = $client->findDocument(
+            $id,
+            false,
+            array('1-abc', '1-cde', '100-ghfgf', '200-blah')
+        );
+        $body = $response->body;
+        $this->assertEquals(4, count($body));
+        // Doc with _rev = 1-cde.
+        $this->assertEquals($docs[2], $body[0]['ok']);
+        // Doc with _rev = 1-abc.
+        $this->assertEquals($docs[0], $body[1]['ok']);
+        // Missing revisions.
+        $this->assertEquals(array('missing' => '100-ghfgf'), $body[2]);
+        $this->assertEquals(array('missing' => '200-blah'), $body[3]);
     }
 
     public function testFindDocuments()
