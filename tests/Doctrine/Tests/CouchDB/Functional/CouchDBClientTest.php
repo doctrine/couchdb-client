@@ -254,7 +254,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     {
         $client = $this->couchClient;
 
-        // Recreate DB
+        // Recreate DB.
         $client->deleteDatabase($this->getTestDatabase());
         $client->createDatabase($this->getTestDatabase());
         // Test fetching of document.
