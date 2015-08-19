@@ -19,6 +19,7 @@
 
 namespace Doctrine\CouchDB;
 
+use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use Doctrine\CouchDB\HTTP\Client;
 use Doctrine\CouchDB\HTTP\Response;
 use Doctrine\CouchDB\HTTP\HTTPException;
@@ -146,30 +147,37 @@ class CouchDBClient
     /**
      * Find a document by ID and return the HTTP response.
      *
-     * If $allOpenRevs is true, documents for all leaf revisions are
-     * retrieved and $revisions parameter is ignored. If $allOpenRevs
-     * is false and $revisions is not null, only the specified leaf revisions
-     * are retrieved.
-     *
      * @param string $id
-     * @param bool $allOpenRevs
-     * @param array $revisions
      * @return HTTP\Response
      */
-    public function findDocument(
-        $id,
-        $allOpenRevs = false,
-        array $revisions = null
-    ) {
-        $path = '/' . $this->databaseName . '/' . urlencode($id);
-        if ($allOpenRevs == true) {
-            // Fetch documents of all leaf revisions.
-            $path .= '?open_revs=all';
-        } else if ($revisions != null) {
+    public function findDocument($id)
+    {
+        $documentPath = '/' . $this->databaseName . '/' . urlencode($id);
+        return $this->httpClient->request('GET', $documentPath);
+    }
+
+    /**
+     * Find documents of all or the specified revisions.
+     *
+     * If $revisions is an array containing the revisions to be fetched, only
+     * the documents of those revisions are fetched. Else document of all
+     * leaf revisions are fetched.
+     *
+     * @param string $docId
+     * @param mixed $revisions
+     * @return HTTP\Response
+     */
+    public function findRevisions($docId, $revisions = null)
+    {
+        $path = '/' . $this->databaseName . '/' . urlencode($docId);
+        if (is_array($revisions)) {
             // Fetch documents of only the specified leaf revisions.
             $path .= '?open_revs=' . json_encode($revisions);
+        } else {
+            // Fetch documents of all leaf revisions.
+            $path .= '?open_revs=all';
         }
-        // Set the Accept header to application/json to get JSON array in the
+        // Set the Accept header to application/json to get a JSON array in the
         // response's body. Without this the response is multipart/mixed stream.
         return $this->httpClient->request(
             'GET',

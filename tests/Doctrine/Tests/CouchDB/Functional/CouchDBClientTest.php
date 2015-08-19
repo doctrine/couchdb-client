@@ -247,9 +247,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $client->compactView('test-design-doc-query');
     }
 
-    /**
-     * @depends testCreateBulkUpdater
-     */
     public function testFindDocument()
     {
         $client = $this->couchClient;
@@ -267,9 +264,21 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
             array('_id' => $id, '_rev' => $rev, 'foo' => 'bar'),
             $body
         );
+    }
 
-        // Test fetching of documents of all revisions. The _id of all the
-        // documents is same. So we will get multiple leaf revisions.
+    /**
+     * @depends testCreateBulkUpdater
+     */
+    public function testFindRevisions()
+    {
+        $client = $this->couchClient;
+
+        // Recreate DB.
+        $client->deleteDatabase($this->getTestDatabase());
+        $client->createDatabase($this->getTestDatabase());
+
+        // The _id of all the documents is same. So we will get multiple leaf
+        // revisions.
         $id = 'multiple_revisions';
         $docs = array(
             array('_id' => $id, 'foo' => 'bar1', '_rev' => '1-abc'),
@@ -284,8 +293,12 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         // new ones.
         $updater->setNewEdits(false);
         $response = $updater->execute();
-        // The third param should be ignored as all revisions are being fetched.
-        $response = $client->findDocument($id, true, array('3-ghfgf'));
+
+        // Test fetching of documents of all revisions. By default all
+        // revisions are fetched.
+        $response = $client->findRevisions($id);
+        $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+        $this->assertObjectHasAttribute('body', $response);
         $expected = array(
             array('ok' => $docs[2]),
             array('ok' => $docs[1]),
@@ -293,9 +306,8 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         );
         $this->assertEquals($expected, $response->body);
         // Test fetching of specific revisions.
-        $response = $client->findDocument(
+        $response = $client->findRevisions(
             $id,
-            false,
             array('1-abc', '1-cde', '100-ghfgf', '200-blah')
         );
         $body = $response->body;
