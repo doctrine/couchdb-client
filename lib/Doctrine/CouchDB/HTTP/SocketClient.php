@@ -189,6 +189,10 @@ class SocketClient extends AbstractHTTPClient
      */
     public function request($method, $path, $data = null, $raw = false, array $headers = array())
     {
+        if ($this->options['path']) {
+            $path = '/' . $this->options['path'] . $path;
+        }
+
         // Try establishing the connection to the server
         $this->checkConnection();
 

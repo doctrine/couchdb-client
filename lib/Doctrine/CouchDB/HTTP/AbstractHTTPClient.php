@@ -29,6 +29,7 @@ abstract class AbstractHTTPClient implements Client
         'keep-alive' => true,
         'username'   => null,
         'password'   => null,
+        'path'       => null,
     );
 
     /**
@@ -43,15 +44,17 @@ abstract class AbstractHTTPClient implements Client
      * @param string $password
      * @param string $ip
      * @param bool $ssl
+     * @param string $path
      * @return \Doctrine\CouchDB\HTTP\AbstractHTTPClient
      */
-    public function __construct( $host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null , $ssl = false )
+    public function __construct( $host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null , $ssl = false, $path = null )
     {
         $this->options['host']     = (string) $host;
         $this->options['port']     = (int) $port;
         $this->options['ssl']      = $ssl;
         $this->options['username'] = $username;
         $this->options['password'] = $password;
+        $this->options['path'] = $path;
 
         if ($ip === null) {
             $this->options['ip'] = gethostbyname($this->options['host']);

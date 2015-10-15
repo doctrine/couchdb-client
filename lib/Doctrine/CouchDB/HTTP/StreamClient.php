@@ -169,6 +169,9 @@ class StreamClient extends AbstractHTTPClient
      */
     public function request($method, $path, $data = null, $raw = false, array $headers = array())
     {
+        if ($this->options['path']) {
+            $path = '/' . $this->options['path'] . $path;
+        }
 
         $this->checkConnection($method, $path, $data, $headers);
 
