@@ -189,11 +189,9 @@ class SocketClient extends AbstractHTTPClient
      */
     public function request($method, $path, $data = null, $raw = false, array $headers = array())
     {
+        $full_path = $path;
         if ($this->options['path']) {
             $full_path = '/' . $this->options['path'] . $path;
-        }
-        else {
-            $full_path = $path;
         }
 
         // Try establishing the connection to the server

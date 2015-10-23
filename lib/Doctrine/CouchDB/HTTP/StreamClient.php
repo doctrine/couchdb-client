@@ -57,11 +57,9 @@ class StreamClient extends AbstractHTTPClient
         $data = null,
         array $headers = array()
     ) {
+        $full_path = $path;
         if ($this->options['path']) {
             $full_path = '/' . $this->options['path'] . $path;
-        }
-        else {
-            $full_path = $path;
         }
 
         $this->checkConnection($method, $full_path, $data, $headers);
@@ -176,11 +174,9 @@ class StreamClient extends AbstractHTTPClient
      */
     public function request($method, $path, $data = null, $raw = false, array $headers = array())
     {
+        $full_path = $path;
         if ($this->options['path']) {
             $full_path = '/' . $this->options['path'] . $path;
-        }
-        else {
-            $full_path = $path;
         }
 
         $this->checkConnection($method, $full_path, $data, $headers);
