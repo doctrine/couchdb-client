@@ -60,6 +60,9 @@ class StreamClient extends AbstractHTTPClient
         if ($this->options['path']) {
             $full_path = '/' . $this->options['path'] . $path;
         }
+        else {
+            $full_path = $path;
+        }
 
         $this->checkConnection($method, $full_path, $data, $headers);
         return $this->httpFilePointer;
@@ -175,6 +178,9 @@ class StreamClient extends AbstractHTTPClient
     {
         if ($this->options['path']) {
             $full_path = '/' . $this->options['path'] . $path;
+        }
+        else {
+            $full_path = $path;
         }
 
         $this->checkConnection($method, $full_path, $data, $headers);

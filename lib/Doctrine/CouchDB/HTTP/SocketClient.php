@@ -192,6 +192,9 @@ class SocketClient extends AbstractHTTPClient
         if ($this->options['path']) {
             $full_path = '/' . $this->options['path'] . $path;
         }
+        else {
+            $full_path = $path;
+        }
 
         // Try establishing the connection to the server
         $this->checkConnection();
