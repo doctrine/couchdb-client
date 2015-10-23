@@ -54,7 +54,7 @@ abstract class AbstractHTTPClient implements Client
         $this->options['ssl']      = $ssl;
         $this->options['username'] = $username;
         $this->options['password'] = $password;
-        $this->options['path'] = $path;
+        $this->options['path']     = $path;
 
         if ($ip === null) {
             $this->options['ip'] = gethostbyname($this->options['host']);
