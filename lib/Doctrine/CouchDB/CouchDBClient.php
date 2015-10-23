@@ -671,7 +671,8 @@ class CouchDBClient
             $connectionOptions['username'],
             $connectionOptions['password'],
             $connectionOptions['ip'],
-            $connectionOptions['ssl']
+            $connectionOptions['ssl'],
+            $connectionOptions['path']
         );
 
         foreach ($params as $key => $value) {

@@ -190,14 +190,14 @@ class SocketClient extends AbstractHTTPClient
     public function request($method, $path, $data = null, $raw = false, array $headers = array())
     {
         if ($this->options['path']) {
-            $path = '/' . $this->options['path'] . $path;
+            $full_path = '/' . $this->options['path'] . $path;
         }
 
         // Try establishing the connection to the server
         $this->checkConnection();
 
         // Send the build request to the server
-        if (fwrite($this->connection, $request = $this->buildRequest($method, $path, $data, $headers)) === false) {
+        if (fwrite($this->connection, $request = $this->buildRequest($method, $full_path, $data, $headers)) === false) {
             // Reestablish which seems to have been aborted
             //
             // The recursion in this method might be problematic if the

@@ -48,7 +48,8 @@ class MultipartParserAndSender
             $sourceOptions['username'],
             $sourceOptions['password'],
             $sourceOptions['ip'],
-            $sourceOptions['ssl']
+            $sourceOptions['ssl'],
+            $sourceOptions['path']
         );
 
         $targetOptions = $target->getOptions();
@@ -58,7 +59,8 @@ class MultipartParserAndSender
             $targetOptions['username'],
             $targetOptions['password'],
             $targetOptions['ip'],
-            $targetOptions['ssl']
+            $targetOptions['ssl'],
+            $sourceOptions['path']
         );
     }
 
