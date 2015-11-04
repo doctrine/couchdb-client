@@ -55,8 +55,13 @@ class SocketClient extends AbstractHTTPClient
         $data = null,
         array $headers = array()
     ) {
+        $full_path = $path;
+        if ($this->options['path']) {
+            $full_path = '/' . $this->options['path'] . $path;
+        }
+
         $this->checkConnection();
-        $stringHeader = $this->buildRequest($method, $path, $data, $headers);
+        $stringHeader = $this->buildRequest($method, $full_path, $data, $headers);
         // Send the build request to the server
         if (fwrite($this->connection, $stringHeader) === false) {
             // Reestablish which seems to have been aborted
