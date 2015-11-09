@@ -57,6 +57,9 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $dbs = $this->couchClient->getAllDatabases();
         $this->assertContains($dbName2, $dbs);
+
+        // Tidy
+        $this->couchClient->deleteDatabase($dbName2);
     }
 
     public function testDropMultipleTimesSkips()
@@ -393,23 +396,55 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
             );
         }
 
+        // Everything
         $response = $client->allDocs();
         $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
 
+        // No Limit
         $response = $client->allDocs(0);
         $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
 
+        // Limit
         $response = $client->allDocs(1);
         $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0])), $response->body);
 
+        // Limit
         $response = $client->allDocs(2);
         $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0], $expectedRows[1])), $response->body);
 
+        // Start Key
         $response = $client->allDocs(0, $ids[1]);
         $this->assertEquals(array('total_rows' => 3, 'offset' => 1, 'rows' => array($expectedRows[1], $expectedRows[2])), $response->body);
 
+        // Start Key with Limit
         $response = $client->allDocs(1, $ids[2]);
         $this->assertEquals(array('total_rows' => 3, 'offset' => 2, 'rows' => array($expectedRows[2])), $response->body);
+
+
+
+        // End key
+        $response = $client->allDocs(0, null, $ids[0]);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0])), $response->body);
+
+        // Skip
+        $response = $client->allDocs(0, null, null, 1);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 1, 'rows' => array($expectedRows[1], $expectedRows[2])), $response->body);
+
+
+
+        // Skip, Descending
+        $response = $client->allDocs(null, null, null, 1, true);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 1, 'rows' => array($expectedRows[1], $expectedRows[0])), $response->body);
+
+        // Limit, Descending
+        $response = $client->allDocs(1, null, null, null, true);
+        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[2])), $response->body);
+
+
+        // tidy
+        $client->deleteDocument($expectedRows[0]['id'], $expectedRows[0]['value']['rev']);
+        $client->deleteDocument($expectedRows[1]['id'], $expectedRows[1]['value']['rev']);
+        $client->deleteDocument($expectedRows[2]['id'], $expectedRows[2]['value']['rev']);
     }
 
     public function testGetActiveTasks()
@@ -438,6 +473,10 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $client->replicate($sourceDatabase, $targetDatabase2, true, true);
         $active_tasks = $client->getActiveTasks();
         $this->assertEquals(array(), $active_tasks);
+
+        // Tidy
+        $this->couchClient->deleteDatabase($targetDatabase1);
+        $this->couchClient->deleteDatabase($targetDatabase2);
     }
 
     public function testGetRevisionDifference()
