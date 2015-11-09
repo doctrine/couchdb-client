@@ -19,7 +19,9 @@
 
 namespace Doctrine\CouchDB;
 
+use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use Doctrine\CouchDB\HTTP\Client;
+use Doctrine\CouchDB\HTTP\Response;
 use Doctrine\CouchDB\HTTP\HTTPException;
 use Doctrine\CouchDB\HTTP\MultipartParserAndSender;
 use Doctrine\CouchDB\HTTP\StreamClient;
@@ -145,13 +147,45 @@ class CouchDBClient
     /**
      * Find a document by ID and return the HTTP response.
      *
-     * @param  string $id
+     * @param string $id
      * @return HTTP\Response
      */
     public function findDocument($id)
     {
         $documentPath = '/' . $this->databaseName . '/' . urlencode($id);
-        return $this->httpClient->request( 'GET', $documentPath );
+        return $this->httpClient->request('GET', $documentPath);
+    }
+
+    /**
+     * Find documents of all or the specified revisions.
+     *
+     * If $revisions is an array containing the revisions to be fetched, only
+     * the documents of those revisions are fetched. Else document of all
+     * leaf revisions are fetched.
+     *
+     * @param string $docId
+     * @param mixed $revisions
+     * @return HTTP\Response
+     */
+    public function findRevisions($docId, $revisions = null)
+    {
+        $path = '/' . $this->databaseName . '/' . urlencode($docId);
+        if (is_array($revisions)) {
+            // Fetch documents of only the specified leaf revisions.
+            $path .= '?open_revs=' . json_encode($revisions);
+        } else {
+            // Fetch documents of all leaf revisions.
+            $path .= '?open_revs=all';
+        }
+        // Set the Accept header to application/json to get a JSON array in the
+        // response's body. Without this the response is multipart/mixed stream.
+        return $this->httpClient->request(
+            'GET',
+            $path,
+            null,
+            false,
+            array('Accept' => 'application/json')
+        );
     }
 
     /**
@@ -657,5 +691,21 @@ class CouchDBClient
         // Everything seems okay. Return the connection resource.
         return $stream;
 
+    }
+
+    /**
+     * Commit any recent changes to the specified database to disk.
+     *
+     * @return array
+     * @throws HTTPException
+     */
+    public function ensureFullCommit()
+    {
+        $path = '/' . $this->databaseName . '/_ensure_full_commit';
+        $response = $this->httpClient->request('POST', $path);
+        if ($response->status != 201) {
+            throw HTTPException::fromResponse($path, $response);
+        }
+        return $response->body;
     }
 }
