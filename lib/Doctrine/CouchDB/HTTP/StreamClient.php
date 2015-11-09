@@ -57,12 +57,12 @@ class StreamClient extends AbstractHTTPClient
         $data = null,
         array $headers = array()
     ) {
-        $full_path = $path;
+        $fullPath = $path;
         if ($this->options['path']) {
-            $full_path = '/' . $this->options['path'] . $path;
+            $fullPath = '/' . $this->options['path'] . $path;
         }
 
-        $this->checkConnection($method, $full_path, $data, $headers);
+        $this->checkConnection($method, $fullPath, $data, $headers);
         return $this->httpFilePointer;
     }
 
@@ -174,12 +174,12 @@ class StreamClient extends AbstractHTTPClient
      */
     public function request($method, $path, $data = null, $raw = false, array $headers = array())
     {
-        $full_path = $path;
+        $fullPath = $path;
         if ($this->options['path']) {
-            $full_path = '/' . $this->options['path'] . $path;
+            $fullPath = '/' . $this->options['path'] . $path;
         }
 
-        $this->checkConnection($method, $full_path, $data, $headers);
+        $this->checkConnection($method, $fullPath, $data, $headers);
 
         // Read request body.
         $body = '';

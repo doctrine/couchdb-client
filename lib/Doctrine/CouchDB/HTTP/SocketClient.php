@@ -55,13 +55,13 @@ class SocketClient extends AbstractHTTPClient
         $data = null,
         array $headers = array()
     ) {
-        $full_path = $path;
+        $fullPath = $path;
         if ($this->options['path']) {
-            $full_path = '/' . $this->options['path'] . $path;
+            $fullPath = '/' . $this->options['path'] . $path;
         }
 
         $this->checkConnection();
-        $stringHeader = $this->buildRequest($method, $full_path, $data, $headers);
+        $stringHeader = $this->buildRequest($method, $fullPath, $data, $headers);
         // Send the build request to the server
         if (fwrite($this->connection, $stringHeader) === false) {
             // Reestablish which seems to have been aborted
@@ -194,16 +194,16 @@ class SocketClient extends AbstractHTTPClient
      */
     public function request($method, $path, $data = null, $raw = false, array $headers = array())
     {
-        $full_path = $path;
+        $fullPath = $path;
         if ($this->options['path']) {
-            $full_path = '/' . $this->options['path'] . $path;
+            $fullPath = '/' . $this->options['path'] . $path;
         }
 
         // Try establishing the connection to the server
         $this->checkConnection();
 
         // Send the build request to the server
-        if (fwrite($this->connection, $request = $this->buildRequest($method, $full_path, $data, $headers)) === false) {
+        if (fwrite($this->connection, $request = $this->buildRequest($method, $fullPath, $data, $headers)) === false) {
             // Reestablish which seems to have been aborted
             //
             // The recursion in this method might be problematic if the
