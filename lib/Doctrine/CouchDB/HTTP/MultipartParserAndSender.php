@@ -60,7 +60,7 @@ class MultipartParserAndSender
             $targetOptions['password'],
             $targetOptions['ip'],
             $targetOptions['ssl'],
-            $sourceOptions['path']
+            $targetOptions['path']
         );
     }
 
