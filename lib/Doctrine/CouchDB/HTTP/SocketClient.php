@@ -100,11 +100,11 @@ class SocketClient extends AbstractHTTPClient
                     0
                 );
             }
-            
+
             $host = 'ssl://' . $this->options['host'];
-            
+
         } else {
-        	$host = $this->options['ip'];       
+            $host = $this->options['ip'];
         }
 
         // If the connection could not be established, fsockopen sadly does not

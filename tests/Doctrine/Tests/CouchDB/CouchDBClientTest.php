@@ -23,6 +23,27 @@ class CouchDBClientTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($httpClient, $client->getHttpClient());
     }
 
+    public function testCreateClientFromUrl()
+    {
+        $client = CouchDBClient::create(array('url' => 'https://foo:bar@localhost:5555/baz'));
+
+        $this->assertEquals('baz', $client->getDatabase());
+        $this->assertEquals(
+            array(
+                'host' => 'localhost',
+                'port' => 5555,
+                'ip' => '127.0.0.1',
+                'username' => 'foo',
+                'password' => 'bar',
+                'ssl' => true,
+                'timeout' => 0.01,
+                'keep-alive' => true,
+                'path' => null,
+            ),
+            $client->getHttpClient()->getOptions()
+        );
+    }
+
     public function testCreateClientWithLogging()
     {
         $client = CouchDBClient::create(array('dbname' => 'test', 'logging' => true));
