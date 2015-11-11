@@ -119,6 +119,7 @@ class CouchDBClient
             'ssl' => false,
             'path' => null,
             'logging' => false,
+            'timeout' => 0.01,
         );
         $options = array_merge($defaults, $options);
 
@@ -128,7 +129,16 @@ class CouchDBClient
             ));
         }
         $connectionClass = self::$clients[$options['type']];
-        $connection = new $connectionClass($options['host'], $options['port'], $options['user'], $options['password'], $options['ip'], $options['ssl'], $options['path']);
+        $connection = new $connectionClass(
+            $options['host'],
+            $options['port'],
+            $options['user'],
+            $options['password'],
+            $options['ip'],
+            $options['ssl'],
+            $options['path'],
+            $options['timeout']
+        );
         if ($options['logging'] === true) {
             $connection = new HTTP\LoggingClient($connection);
         }
