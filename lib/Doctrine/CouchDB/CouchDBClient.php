@@ -88,7 +88,9 @@ class CouchDBClient
                         break;
 
                     case 'path':
-                        $options['dbname'] = ltrim($value, '/');
+                        $path = explode('/', $value);
+                        $options['dbname'] = array_pop($path);
+                        $options['path'] = trim(implode('/', $path), '/');
                         break;
 
                     case 'pass':
