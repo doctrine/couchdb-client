@@ -662,4 +662,17 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertArrayHasKey('ok', $body);
         $this->assertEquals(true, $body['ok']);
     }
+
+    public function test404WhenQueryAndNoDesignDocument()
+    {
+        $client = $this->couchClient;
+        $query = $client->createViewQuery('foo', 'not-found');
+
+        $this->setExpectedException(
+            'Doctrine\CouchDB\HTTP\HTTPException',
+            'HTTP Error with status 404 occoured while requesting /doctrine_test_database/_design/foo/_view/not-found?. Error: not_found missing'
+        );
+
+        $query->execute();
+    }
 }

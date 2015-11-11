@@ -90,8 +90,7 @@ abstract class AbstractQuery
 
         $response = $this->client->request($method, $path, $data);
 
-        if ($response instanceof ErrorResponse) {
-            // Create view, if it does not exist yet
+        if ($response instanceof ErrorResponse && $this->doc) {
             $this->createDesignDocument();
             $response = $this->client->request($method, $path, $data);
         }
