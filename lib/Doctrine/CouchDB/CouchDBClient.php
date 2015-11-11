@@ -468,7 +468,7 @@ class CouchDBClient
      */
     public function deleteDocument($id, $rev)
     {
-        $path = '/' . $this->databaseName . '/' . $id . '?rev=' . $rev;
+        $path = '/' . $this->databaseName . '/' . urlencode($id) . '?rev=' . $rev;
         $response = $this->httpClient->request('DELETE', $path);
 
         if ($response->status != 200) {
