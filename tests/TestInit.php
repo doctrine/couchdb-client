@@ -10,8 +10,3 @@ EOT
     );
 }
 
-use Doctrine\Common\ClassLoader;
-
-$classLoader = new ClassLoader('Doctrine\Tests', __DIR__ . '/../tests');
-$classLoader->register();
-

@@ -4,8 +4,6 @@ namespace Doctrine\Tests\CouchDB;
 
 use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\CouchDB\HTTP\SocketClient;
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Annotations\AnnotationReader;
 
 abstract class CouchDBFunctionalTestCase extends \PHPUnit_Framework_TestCase
 {

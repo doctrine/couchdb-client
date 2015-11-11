@@ -19,7 +19,6 @@
 
 namespace Doctrine\CouchDB;
 
-use Doctrine\Common\Proxy\Exception\InvalidArgumentException;
 use Doctrine\CouchDB\HTTP\Client;
 use Doctrine\CouchDB\HTTP\Response;
 use Doctrine\CouchDB\HTTP\HTTPException;
