@@ -58,7 +58,7 @@ class Query extends AbstractQuery
                 $arguments[$key] = json_encode($value);
             } else if (is_bool($value)) {
                 $arguments[$key] = $value ? 'true' : 'false';
-            } else if (is_bool($value)) {
+            } else {
                 $arguments[$key] = $value;
             }
         }
