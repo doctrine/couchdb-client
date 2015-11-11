@@ -5,7 +5,7 @@ namespace Doctrine\CouchDB\View;
 use Doctrine\CouchDB\HTTP\Client;
 
 class LuceneQuery extends AbstractQuery
-{   
+{
     /**
      * The CouchDB Lucene Handler name, probably defaults to _fti
      *
