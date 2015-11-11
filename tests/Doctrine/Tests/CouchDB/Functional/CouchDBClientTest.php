@@ -226,7 +226,11 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertInstanceOf('Doctrine\CouchDB\View\Query', $query);
 
         $result = $query->execute();
+
         $this->assertInstanceOf('Doctrine\CouchDB\View\Result', $result);
+        $this->assertEquals(0, $result->getOffset());
+        $this->assertEquals(0, $result->getTotalRows());
+        $this->assertEquals(0, count($result));
     }
 
     public function testCompactDatabase()
