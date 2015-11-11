@@ -83,8 +83,8 @@ abstract class AbstractQuery
         $method = "GET";
         $data = null;
         if($this->getParameter("keys") !== null) {
-  	      $method = "POST";
-          $data = json_encode(array("keys" => $this->getParameter("keys")));
+            $method = "POST";
+            $data = json_encode(array("keys" => $this->getParameter("keys")));
         }
 
         $response = $this->client->request($method, $path, $data);
