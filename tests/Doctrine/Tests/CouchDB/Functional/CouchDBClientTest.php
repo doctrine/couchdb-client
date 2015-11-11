@@ -675,4 +675,22 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $query->execute();
     }
+
+    public function testEncodeQueryParamsCorrectly()
+    {
+        $designDocPath = __DIR__ . "/../../Models/CMS/_files";
+
+        $client = $this->couchClient;
+        $designDoc = new FolderDesignDocument($designDocPath);
+
+        $query = $client->createViewQuery('test-design-doc-query', 'username', $designDoc);
+        $query->setStartKey(array('foo', 'bar'));
+        $query->setEndKey(array('bar', 'baz'));
+        $query->setStale(true);
+        $query->setDescending(true);
+
+        $result = $query->execute();
+
+        $this->assertEquals(0, $result->getTotalRows());
+    }
 }

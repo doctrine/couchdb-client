@@ -29,19 +29,37 @@ namespace Doctrine\CouchDB\View;
  */
 class Query extends AbstractQuery
 {
+    /**
+     * Only a subset of parameters in the Query String must be JSON encoded when transmitted.
+     *
+     * @param array<string,bool>
+     */
+    private static $encodeParams = array('key' => true, 'keys' => true, 'startkey' => true, 'endkey' => true);
+
     protected function createResult($response)
     {
         return new Result($response->body);
     }
 
+    /**
+     * Encode HTTP Query String for View correctly with the following rules in mind.
+     *
+     * 1. Params "key", "keys", "startkey" or "endkey" must be json encoded.
+     * 2. Booleans must be converted to "true" or "false"
+     *
+     * @return string
+     */
     protected function getHttpQuery()
     {
         $arguments = array();
+
         foreach ($this->params as $key => $value) {
-            if ($key === 'stale') {
-                $arguments[$key] = $value;
-            } else if($key != 'keys') {
+            if (isset(self::$encodeParams[$key])) {
                 $arguments[$key] = json_encode($value);
+            } else if (is_bool($value)) {
+                $arguments[$key] = $value ? 'true' : 'false';
+            } else if (is_bool($value)) {
+                $arguments[$key] = $value;
             }
         }
 
@@ -158,7 +176,14 @@ class Query extends AbstractQuery
      */
     public function setStale($flag)
     {
-        $this->params['stale'] = $flag;
+        if (!is_bool($flag)) {
+            $this->params['stale'] = $flag;
+        } else if ($flag === true) {
+            $this->params['stale'] = 'ok';
+        } else {
+            unset($this->params['stale']);
+        }
+
         return $this;
     }
 
