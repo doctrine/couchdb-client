@@ -233,6 +233,33 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertEquals(0, count($result));
     }
 
+    public function testQueryWithKeys()
+    {
+        $designDocPath = __DIR__ . "/../../Models/CMS/_files";
+
+        $client = $this->couchClient;
+        $ids = array();
+        for ($i = 0; $i < 10; $i++) {
+            $data = array(
+                'type' => 'Doctrine.Tests.Models.CMS.CmsUser',
+                'username' => "user-$i",
+            );
+            list($id, $rev) = $client->putDocument($data, "query-with-key-$i");
+            $ids[] = $id;
+        }
+
+        $designDoc = new FolderDesignDocument($designDocPath);
+
+        $query = $client->createViewQuery('test-design-doc-query', 'username', $designDoc);
+        $query->setKeys($ids);
+
+        $this->assertInstanceOf('Doctrine\CouchDB\View\Query', $query);
+
+        $result = $query->execute();
+
+        $this->assertEquals(10, $result->getTotalRows());
+    }
+
     public function testCompactDatabase()
     {
         $client = $this->couchClient;

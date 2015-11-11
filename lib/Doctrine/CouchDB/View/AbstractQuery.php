@@ -82,14 +82,15 @@ abstract class AbstractQuery
         $path = $this->getHttpQuery();
         $method = "GET";
         $data = null;
-        if($this->getParameter("keys") !== null) {
+
+        if ($this->getParameter("keys") !== null) {
             $method = "POST";
             $data = json_encode(array("keys" => $this->getParameter("keys")));
         }
 
         $response = $this->client->request($method, $path, $data);
 
-        if ( $response instanceof ErrorResponse ) {
+        if ($response instanceof ErrorResponse) {
             // Create view, if it does not exist yet
             $this->createDesignDocument();
             $response = $this->client->request($method, $path, $data);
