@@ -78,7 +78,7 @@ class CouchDBClient
     {
         if (isset($options['url'])) {
             $urlParts = parse_url($options['url']);
-            $urlOptions = ['user' => 'user', 'pass' => 'password', 'host' => 'host', 'path' => 'dbname', 'port' => 'port'];
+
             foreach ($urlParts as $part => $value) {
                 switch($part) {
                     case 'host':
