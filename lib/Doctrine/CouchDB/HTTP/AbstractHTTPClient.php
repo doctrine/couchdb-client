@@ -22,7 +22,7 @@ abstract class AbstractHTTPClient implements Client
      */
     protected $options = array(
         'host'       => 'localhost',
-        'port'       => 5984,
+        'port'       => 80,
         'ip'         => '127.0.0.1',
         'ssl'        => false,
         'timeout'    => 0.01,
@@ -47,7 +47,7 @@ abstract class AbstractHTTPClient implements Client
      * @param string $path
      * @return \Doctrine\CouchDB\HTTP\AbstractHTTPClient
      */
-    public function __construct($host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null , $ssl = false, $path = null, $timeout = 0.01)
+    public function __construct($host = 'localhost', $port = 80, $username = null, $password = null, $ip = null , $ssl = false, $path = null, $timeout = 0.01)
     {
         $this->options['host']     = (string) $host;
         $this->options['port']     = (int) $port;

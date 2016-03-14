@@ -114,7 +114,7 @@ class CouchDBClient
         $defaults = array(
             'type' => 'socket',
             'host' => 'localhost',
-            'port' => 5984,
+            'port' => 80,
             'user' => null,
             'password' => null,
             'ip' => null,
