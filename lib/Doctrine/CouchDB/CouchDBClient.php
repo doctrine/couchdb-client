@@ -121,7 +121,7 @@ class CouchDBClient
             'ssl' => false,
             'path' => null,
             'logging' => false,
-            'timeout' => 0.01,
+            'timeout' => 10,
         );
         $options = array_merge($defaults, $options);
 
