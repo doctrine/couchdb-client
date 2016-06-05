@@ -561,6 +561,24 @@ class CouchDBClient
     }
 
     /**
+     * Retrieve specific binary attachment data.
+     *
+     * @param string $id
+     * @param string $fileName
+     * @return string
+     */
+    public function getAttachment($id, $fileName) {
+        $attachmentPath = '/' . $this->databaseName . '/' . $id . '/' . $fileName;
+        $response = $this->httpClient->request('GET', $attachmentPath, null, true);
+
+        if ($response->status != 200) {
+            throw HTTPException::fromResponse($attachmentPath, $response);
+        }
+
+        return $response->body;
+    }
+
+    /**
      * POST /db/_compact/designDoc
      *
      * @param string $designDoc
