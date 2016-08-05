@@ -324,4 +324,60 @@ EOT;
         $client->createDatabase($this->getTestDatabase());
         $client->deleteDatabase($copyDb);
     }
+
+    /**
+     * Test multipart request with body size in the request body.
+     */
+    public function testMultipartRequestWithSize()
+    {
+        $this->streamClientMock->expects($this->once())
+          ->method('getStreamHeaders')
+          ->willReturn(array('status' => 200));
+        $docs = array(
+          '{"_id": "' . $this->docId . '","_rev": "1-abc","foo":"bar"}',
+          '{"_id": "' . $this->docId . '","_rev": "1-abcd","foo":"baz"}',
+          '{"_id": "' . $this->docId . '","_rev": "1-abcde","foo":"baz"}',
+        );
+        $string = <<<EOT
+--7b1596fc4940bc1be725ad67f11ec1c4
+Content-Type: application/json
+
+$docs[0]
+--7b1596fc4940bc1be725ad67f11ec1c4
+Content-Type: application/json
+
+$docs[1]
+--7b1596fc4940bc1be725ad67f11ec1c4
+Content-Type: application/json
+
+$docs[2]
+--7b1596fc4940bc1be725ad67f11ec1c4
+EOT;
+        $size = strlen($string);
+        // Add the size.
+        $string = <<<EOT
+$size
+$string
+EOT;
+
+        $stream = fopen('data://text/plain,' . $string,'r');
+        $this->streamClientMock->expects($this->once())
+          ->method('getConnection')
+          ->willReturn($stream);
+
+        $response = $this->parserAndSender->request(
+          $this->sourceMethod,
+          $this->sourcePath,
+          $this->targetPath,
+          null,
+          $this->sourceHeaders
+        );
+        // The returned response should have the JSON docs.
+        $this->AssertEquals(2, count($response));
+        $this->AssertEquals(3, count($response[0]));
+        $this->AssertEquals($docs[0], $response[0][0]);
+        $this->AssertEquals($docs[1], $response[0][1]);
+        $this->AssertEquals($docs[2], $response[0][2]);
+    }
+
 }
