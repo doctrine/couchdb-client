@@ -234,11 +234,6 @@ EOT;
         );
         // Recreate DB
         $client->deleteDatabase($this->getTestDatabase());
-        // This should fix random failing test with this error: "HTTP Error with
-        // status 412 occurred while requesting /doctrine_test_database. Error:
-        // file_exists The database could not be created, the file already
-        // exists."
-        sleep(3);
         $client->createDatabase($this->getTestDatabase());
 
         // Doc id.
