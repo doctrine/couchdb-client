@@ -178,6 +178,11 @@ class MultipartParserAndSender
     {
         // Main response boundary of the multipart stream.
         $mainBoundary = trim($this->getNextLineFromSourceConnection());
+        // If on the first line we have the size, then main boundary should be
+        // on the second line.
+        if (is_numeric($mainBoundary)) {
+            $mainBoundary = trim($this->getNextLineFromSourceConnection());
+        }
 
         // Docs that don't have attachment.
         // These should be posted using Bulk upload.
@@ -193,7 +198,6 @@ class MultipartParserAndSender
                 continue;
 
             } elseif (strpos($line, 'Content-Type') !== false) {
-
 
                 list($header, $value) = explode(':', $line);
                 $header = trim($header);
