@@ -66,7 +66,7 @@ class HTTPException extends \Doctrine\CouchDB\CouchDBException
         }
 
         return new self(
-            "HTTP Error with status " . $response->status . " occoured while "
+            "HTTP Error with status " . $response->status . " occurred while "
                 . "requesting " . $path . ". Error: " . $response->body['error']
                 . " " . $response->body['reason'],
             $response->status );

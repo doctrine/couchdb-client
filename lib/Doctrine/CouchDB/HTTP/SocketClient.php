@@ -141,7 +141,10 @@ class SocketClient extends AbstractHTTPClient
         array $headers = array()
     ) {
         // Create basic request headers
-        $host = "Host: {$this->options['host']}:{$this->options['port']}";
+        $host = "Host: {$this->options['host']}";
+        if ($this->options['port'] != 80) {
+            $host .= ":{$this->options['port']}";
+        }
         $request = "$method $path HTTP/1.1\r\n$host\r\n";
 
         // Add basic auth if set

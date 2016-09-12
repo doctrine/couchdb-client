@@ -74,7 +74,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     public function testCreateDuplicateDatabaseThrowsException()
     {
         $this->couchClient->createDatabase($this->getTestDatabase());
-        $this->setExpectedException('Doctrine\CouchDB\HTTP\HTTPException', 'HTTP Error with status 412 occoured while requesting /'.$this->getTestDatabase().'. Error: file_exists The database could not be created, the file already exists.');
+        $this->setExpectedException('Doctrine\CouchDB\HTTP\HTTPException', 'HTTP Error with status 412 occurred while requesting /'.$this->getTestDatabase().'. Error: file_exists The database could not be created, the file already exists.');
         $this->couchClient->createDatabase($this->getTestDatabase());
     }
 
@@ -87,7 +87,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertEquals($this->getTestDatabase(), $data['db_name']);
 
         $notExistedDb = 'not_existed_db';
-        $this->setExpectedException('Doctrine\CouchDB\HTTP\HTTPException','HTTP Error with status 404 occoured while requesting /'.$notExistedDb.'. Error: not_found no_db_file');
+        $this->setExpectedException('Doctrine\CouchDB\HTTP\HTTPException','HTTP Error with status 404 occurred while requesting /'.$notExistedDb.'. Error: not_found no_db_file');
         $this->couchClient->getDatabaseInfo($notExistedDb);
     }
 
@@ -670,7 +670,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $this->setExpectedException(
             'Doctrine\CouchDB\HTTP\HTTPException',
-            'HTTP Error with status 404 occoured while requesting /doctrine_test_database/_design/foo/_view/not-found?. Error: not_found missing'
+            'HTTP Error with status 404 occurred while requesting /doctrine_test_database/_design/foo/_view/not-found?. Error: not_found missing'
         );
 
         $query->execute();
