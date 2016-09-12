@@ -178,6 +178,36 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertEquals(array("_id" => $id, "_rev" => $rev, "foo" => "bar"), $response->body);
     }
 
+    public function testGetAttachments()
+    {
+        $client = $this->couchClient;
+
+        $mimeType = 'image/png';
+        $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEX/TQBcNTh/AAAAAXRSTlPM0jRW/QAAAApJREFUe' .
+            'JxjYgAAAAYAAzY3fKgAAAAASUVORK5CYII='; // 1px^2 PNG image
+
+        $fileName1 = 'file1.png';
+        $fileName2 = 'file2.png';
+
+        $attachments = array(
+            $fileName1 => array(
+                'content_type' => $mimeType,
+                'data' => $base64Image,
+            ),
+            $fileName2 => array(
+                'content_type' => $mimeType,
+                'data' => $base64Image,
+            ),
+        );
+
+        list($id, $rev) = $client->postDocument(array("foo" => "bar", "_attachments" => $attachments));
+
+        $response = $client->findDocument($id);
+        $this->assertEquals($rev, $response->body['_rev']);
+        $this->assertEquals(count($response->body['_attachments']), count($attachments));
+        $this->assertEquals(base64_encode($this->couchClient->getAttachment($id, $fileName1)), $base64Image);
+    }
+
     public function testPutDocument()
     {
         $id = "foo-bar-baz";
