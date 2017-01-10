@@ -9,7 +9,12 @@ abstract class CouchDBFunctionalTestCase extends \PHPUnit_Framework_TestCase
 {
     private $httpClient = null;
 
-    /**
+    protected function tearDown() {
+        parent::tearDown();
+        $this->createCouchDBClient()->deleteDatabase($this->getTestDatabase());
+    }
+
+  /**
      * @return \Doctrine\CouchDB\HTTP\Client
      */
     public function getHttpClient()
