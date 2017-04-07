@@ -94,13 +94,15 @@ class StreamClient extends AbstractHTTPClient
             }
         }
         if ($this->httpFilePointer == null) {
-            // TODO SSL support?
             $host = $this->options['host'];
-            if ($this->options['port'] != 80) {
-                $host .= ":{$this->options['port']}";
+            if (!in_array($this->options['port'], [80, 443])) {
+              $host .= ":{$this->options['port']}";
             }
+            // Determine the correct scheme so SSL is handled too.
+            $scheme = !empty($this->options['ssl']) ? 'https' : 'http';
+
             $this->httpFilePointer = @fopen(
-                'http://' . $basicAuth . $host . $path,
+                $scheme . '://' . $basicAuth . $host . $path,
                 'r',
                 false,
                 stream_context_create(
