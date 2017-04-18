@@ -146,7 +146,13 @@ class Attachment
     private function lazyLoad()
     {
         if ($this->stub) {
-            $response = $this->httpClient->request('GET', $this->path, null, true); // raw request
+            $pathInfo = pathinfo($this->path);
+            $response = $this->httpClient->request(
+                'GET',
+                    sprintf('%s/%s', $pathInfo['dirname'], urlencode($pathInfo['basename'])),
+                    null,
+                    true
+            ); // raw request
             if ($response->status != 200) {
                 throw HTTPException::fromResponse($this->path, $response);
             }
