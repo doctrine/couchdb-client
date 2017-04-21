@@ -1,19 +1,23 @@
 {
-    "name": "doctrine/couchdb",
+    "name": "phpfastcache/couchdb",
     "type": "library",
-    "description": "CouchDB Client",
+    "description": "CouchDB Client (PhpFastCache fork)",
     "keywords": ["persistence", "couchdb"],
     "homepage": "http://www.doctrine-project.org",
     "license": "MIT",
     "authors": [
         {"name": "Benjamin Eberlei", "email": "kontakt@beberlei.de"},
-        {"name": "Lukas Kahwe Smith", "email": "smith@pooteeweet.org"}
+        {"name": "Lukas Kahwe Smith", "email": "smith@pooteeweet.org"},
+        {"name": "Georges.L", "email": "contact@geolim4.com"}
     ],
     "require": {
         "php": ">=5.4"
     },
     "require-dev": {
-      "phpunit/phpunit": "~4.0"
+        "phpunit/phpunit": "~4.0"
+    },
+    "conflict": {
+        "doctrine/couchdb": "*"
     },
     "autoload": {
         "psr-0": {
