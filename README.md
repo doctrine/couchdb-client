@@ -1,6 +1,6 @@
 # Doctrine CouchDB Client (PhpFastCache Fork) *
 
-[![Build Status](https://travis-ci.org/doctrine/couchdb-client.png?branch=master)](https://travis-ci.org/doctrine/couchdb-client)
+[![Build Status](https://travis-ci.org/PHPSocialNetwork/couchdb-client.png?branch=master)](https://travis-ci.org/PHPSocialNetwork/couchdb-client)
 
 Simple API that wraps around CouchDBs HTTP API.
 
