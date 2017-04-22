@@ -25,7 +25,7 @@ With Composer:
 
     {
         "require": {
-            "doctrine/couchdb": "@dev"
+            "PHPSocialNetwork/couchdb": "@dev"
         }
     }
 
