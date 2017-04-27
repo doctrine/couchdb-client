@@ -294,9 +294,6 @@ class SocketClient extends AbstractHTTPClient
                     }
                 }
             } while ($bytesToRead > 0);
-
-            // Chop off \r\n from the end.
-            $body = substr($body, 0, -2);
         }
 
         // Reset the connection if the server asks for it.
