@@ -290,13 +290,13 @@ class SocketClient extends AbstractHTTPClient
                     while ($bytesLeft > 0) {
                         $body .= $read = fread($this->connection, $bytesLeft + 2);
                         $bytesLeft -= strlen($read);
-                        $body = rtrim($body);
+                        $body = substr($body, 0, -2);
                     }
                 }
             } while ($bytesToRead > 0);
 
             // Chop off \r\n from the end.
-            $body = rtrim($body);
+            $body = substr($body, 0, -2);
         }
 
         // Reset the connection if the server asks for it.
@@ -322,4 +322,3 @@ class SocketClient extends AbstractHTTPClient
         return new Response($headers['status'], $headers, $body, $raw);
     }
 }
-
