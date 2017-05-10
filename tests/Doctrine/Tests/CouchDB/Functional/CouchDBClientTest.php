@@ -93,8 +93,11 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertEquals($this->getTestDatabase(), $data['db_name']);
 
         $notExistedDb = 'not_existed_db';
-        $this->setExpectedException('Doctrine\CouchDB\HTTP\HTTPException','HTTP Error with status 404 occurred while requesting /'.$notExistedDb.'. Error: not_found no_db_file');
+        
+        $this->setExpectedException('Doctrine\CouchDB\HTTP\HTTPException','HTTP Error with status 404 occurred while requesting /'.$notExistedDb.'. Error: not_found Database does not exist');
+
         $this->couchClient->getDatabaseInfo($notExistedDb);
+
     }
 
     public function testCreateBulkUpdater()
