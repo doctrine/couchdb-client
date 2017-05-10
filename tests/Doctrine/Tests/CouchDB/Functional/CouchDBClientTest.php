@@ -16,6 +16,12 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->couchClient = $this->createCouchDBClient();
     }
 
+    public function deleteAndCreateDatabase($databaseName){
+      $this->couchClient->deleteDatabase($databaseName);
+      sleep(1);
+      $this->couchClient->createDatabase($databaseName);
+    }
+
     public function testGetUuids()
     {
         $uuids = $this->couchClient->getUuids();
@@ -570,9 +576,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     {
         $client = $this->couchClient;
 
-        // Recreate DB
-        $client->deleteDatabase($this->getTestDatabase());
-        $client->createDatabase($this->getTestDatabase());
+        $this->deleteAndCreateDatabase($this->getTestDatabase());
 
         // Doc id.
         $id = 'multiple_attachments';
@@ -609,12 +613,19 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         // Create the copy database and a copyClient to interact with it.
         $copyDb = $this->getTestDatabase() . '_copy';
-        $client->createDatabase($copyDb);
+
+        $this->deleteAndCreateDatabase($copyDb);
+
+
         $copyClient = new CouchDBClient($client->getHttpClient(), $copyDb);
+
 
         // Missing revisions in the $copyDb.
         $missingRevs = array('1-abc', '1-bcd');
         // Transfer the missing revisions from the source to the target.
+
+        $response = $client->transferChangedDocuments($id, $missingRevs, $copyClient, true);
+
         list($docStack, $responses) = $client->transferChangedDocuments($id, $missingRevs, $copyClient);
         // $docStack should contain the doc that didn't have the attachment.
         $this->assertEquals(1, count($docStack));
@@ -733,6 +744,8 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
       $response = $client->find(['_id'=>['$eq'=>null]]);
       $this->assertEquals(array(), $response->body['docs']);
 
+      //Clean up
+      $client->deleteDatabase($this->getTestDatabase());
     }
 
 }

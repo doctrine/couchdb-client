@@ -198,7 +198,7 @@ class CouchDBClient
     * Find documents using Mango Query
     * @param array $selector
     * @return HTTP\Response
-    */    
+    */
     public function find(array $selector = [])
     {
       $documentPath = '/' . $this->databaseName."/_find";
