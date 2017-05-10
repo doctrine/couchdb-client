@@ -1,8 +1,5 @@
 language: php
 
-services:
-  - couchdb
-
 php:
   - 5.4
   - 5.5
@@ -11,6 +8,12 @@ php:
   - 7.1
 
 before_script:
+  - mkdir temp
+  - cd temp
+  - wget https://raw.githubusercontent.com/afiskon/install-couchdb/master/install-couchdb.sh
+  - sudo sh install-couchdb.sh
+  - sleep 10
+  - curl -X PUT localhost:5984/doctrine_test_database
   - composer install
 
 script:
