@@ -39,6 +39,7 @@ class CouchDBClientTest extends \PHPUnit_Framework_TestCase
                 'timeout' => 10,
                 'keep-alive' => true,
                 'path' => null,
+                'headers' => array(),
             ),
             $client->getHttpClient()->getOptions()
         );
@@ -60,9 +61,22 @@ class CouchDBClientTest extends \PHPUnit_Framework_TestCase
                 'timeout' => 10,
                 'keep-alive' => true,
                 'path' => 'baz/qux',
+                'headers' => array(),
             ),
             $client->getHttpClient()->getOptions()
         );
+    }
+
+    public function testCreateClientWithDefaultHeaders()
+    {
+        $client = CouchDBClient::create(array('dbname' => 'test', 'headers' => array('X-Test' => 'test')));
+        $http_client = $client->getHttpClient();
+        $connection_options = $http_client->getOptions();
+        $this->assertSame(array('X-Test' => 'test'), $connection_options['headers']);
+
+        $http_client->setOption('headers', array('X-Test-New' => 'new'));
+        $connection_options = $http_client->getOptions();
+        $this->assertSame(array('X-Test-New' => 'new'), $connection_options['headers']);
     }
 
     public function testCreateClientWithLogging()

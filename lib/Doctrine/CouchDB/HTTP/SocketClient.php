@@ -159,6 +159,9 @@ class SocketClient extends AbstractHTTPClient
         // available in the locale net.
         $request .= "Connection: " . ($this->options['keep-alive'] ? 'Keep-Alive' : 'Close') . "\r\n";
 
+        if ($this->options['headers']) {
+            $headers = array_merge($this->options['headers'], $headers);
+        }
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'application/json';
         }
