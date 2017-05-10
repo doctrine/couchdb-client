@@ -118,8 +118,8 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $changes = $this->couchClient->getChanges();
         $this->assertArrayHasKey('results', $changes);
-        exit;
         $this->assertEquals(2, count($changes['results']));
+        exit;
         $this->assertEquals(2, $changes['last_seq']);
 
         // Check the doc_ids parameter.
