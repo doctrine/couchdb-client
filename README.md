@@ -18,6 +18,7 @@ Simple API that wraps around CouchDBs HTTP API.
 * Compaction Info and Triggering APIs
 * Replication API
 * Symfony Console Commands
+* Find Documents using Mango Query [CouchDB v.2.0.0]
 
 ## Installation
 
@@ -62,6 +63,10 @@ $client->deleteDocument($id, $rev);
 
 // Delete a database.
 $client->deleteDatabase($client->getDatabase());
+
+//Search documents using Mango Query CouchDB v2.0.0
+$allDocs = $client->find(['_id'=>['$gt'=>null]]);
+
 ```
 
 ### Views

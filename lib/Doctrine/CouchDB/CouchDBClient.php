@@ -195,6 +195,22 @@ class CouchDBClient
     }
 
     /**
+    * Find documents using Mango Query
+    * @param array $selector
+    * @return HTTP\Response
+    */    
+    public function find(array $selector = [])
+    {
+      $documentPath = '/' . $this->databaseName."/_find";
+
+      if(key($selector)!=='selector'){
+        $selector = ['selector' => $selector];
+      }
+
+      return $this->httpClient->request('POST', $documentPath, json_encode($selector,JSON_FORCE_OBJECT));
+    }
+
+    /**
      * Find a document by ID and return the HTTP response.
      *
      * @param string $id
