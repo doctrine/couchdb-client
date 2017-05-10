@@ -14,12 +14,12 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     public function setUp()
     {
         $this->couchClient = $this->createCouchDBClient();
-        $this->couchClient->createDatabase($this->getTestDatabase());
+        $this->deleteAndCreateDatabase($this->getTestDatabase());
     }
 
     public function deleteAndCreateDatabase($databaseName){
       $this->couchClient->deleteDatabase($databaseName);
-      sleep(1);
+      sleep(0.5);
       $this->couchClient->createDatabase($databaseName);
     }
 
@@ -111,6 +111,12 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
      */
     public function testGetChanges()
     {
+        if(version_compare($this->couchClient->getVersion(),'2.0.0')<1){
+          $this->markTestSkipped(
+              'This test will not pass on version 2.0.0 due a result order bug. https://github.com/apache/couchdb/issues/513'
+            );
+        }
+
         $updater = $this->couchClient->createBulkUpdater();
         $updater->updateDocument(array("_id" => "test1", "foo" => "bar"));
         $updater->updateDocument(array("_id" => "test2", "bar" => "baz"));
