@@ -10,6 +10,10 @@ php:
 before_script:
   - mkdir temp
   - cd temp
+  - sudo apt-get update
+  - wget https://github.com/rebar/rebar/wiki/rebar
+  - sudo chmod +x rebar
+  - sudo cp ./rebar /usr/local/bin/
   - wget https://raw.githubusercontent.com/afiskon/install-couchdb/master/install-couchdb.sh
   - sudo sh install-couchdb.sh
   - sleep 10
