@@ -114,23 +114,26 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $updater = $this->couchClient->createBulkUpdater();
         $updater->updateDocument(array("_id" => "test1", "foo" => "bar"));
         $updater->updateDocument(array("_id" => "test2", "bar" => "baz"));
-        $updater->execute();
+        $result = $updater->execute();
 
         $changes = $this->couchClient->getChanges();
+
         $this->assertArrayHasKey('results', $changes);
+
         $this->assertEquals(2, count($changes['results']));
-        $this->assertEquals(2, $changes['last_seq']);
+        $this->assertStringStartsWith('2', $changes['last_seq']);
 
 
         // Check the doc_ids parameter.
         $changes = $this->couchClient->getChanges(array(
             'doc_ids' => array('test1')
         ));
+
         $this->assertArrayHasKey('results', $changes);
         $this->assertEquals(1, count($changes['results']));
         $this->assertArrayHasKey('id', $changes['results'][0]);
         $this->assertEquals('test1', $changes['results'][0]['id']);
-        $this->assertEquals(2, $changes['last_seq']);
+        $this->assertStringStartsWith('2', $changes['last_seq']);
 
 
         $changes = $this->couchClient->getChanges(array(
@@ -138,16 +141,16 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         ));
         $this->assertArrayHasKey('results', $changes);
         $this->assertEquals(2, count($changes['results']));
-        $this->assertEquals(2, $changes['last_seq']);
-        exit;
+        $this->assertStringStartsWith('2', $changes['last_seq']);
 
         // Check the limit parameter.
         $changes = $this->couchClient->getChanges(array(
             'limit' => 1,
         ));
+
         $this->assertArrayHasKey('results', $changes);
         $this->assertEquals(1, count($changes['results']));
-        $this->assertEquals(1, $changes['last_seq']);
+        $this->assertStringStartsWith('1', $changes['last_seq']);
 
         // Checks the descending parameter.
         $changes = $this->couchClient->getChanges(array(
@@ -156,7 +159,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $this->assertArrayHasKey('results', $changes);
         $this->assertEquals(2, count($changes['results']));
-        $this->assertEquals(1, $changes['last_seq']);
+        $this->assertStringStartsWith('1', $changes['last_seq']);
 
         // Checks the since parameter.
         $changes = $this->couchClient->getChanges(array(
@@ -165,7 +168,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $this->assertArrayHasKey('results', $changes);
         $this->assertEquals(1, count($changes['results']));
-        $this->assertEquals(2, $changes['last_seq']);
+        $this->assertStringStartsWith('2', $changes['last_seq']);
 
         // Checks the filter parameter.
         $designDocPath = __DIR__ . "/../../Models/CMS/_files";
@@ -178,7 +181,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
             'filter' => 'test-filter/my_filter'
         ));
         $this->assertEquals(1, count($changes['results']));
-        $this->assertEquals(3, $changes['last_seq']);
+        $this->assertStringStartsWith('3', $changes['last_seq']);
     }
 
     public function testPostDocument()
