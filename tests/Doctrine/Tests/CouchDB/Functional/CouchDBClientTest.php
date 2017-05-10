@@ -14,6 +14,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     public function setUp()
     {
         $this->couchClient = $this->createCouchDBClient();
+        $this->couchClient->createDatabase($this->getTestDatabase());
     }
 
     public function testGetUuids()
@@ -73,7 +74,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
      */
     public function testCreateDuplicateDatabaseThrowsException()
     {
-        $this->couchClient->createDatabase($this->getTestDatabase());
         $this->setExpectedException('Doctrine\CouchDB\HTTP\HTTPException', 'HTTP Error with status 412 occurred while requesting /'.$this->getTestDatabase().'. Error: file_exists The database could not be created, the file already exists.');
         $this->couchClient->createDatabase($this->getTestDatabase());
     }

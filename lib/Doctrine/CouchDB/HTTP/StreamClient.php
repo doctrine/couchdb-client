@@ -81,6 +81,9 @@ class StreamClient extends AbstractHTTPClient
         if ($this->options['username']) {
             $basicAuth .= "{$this->options['username']}:{$this->options['password']}@";
         }
+        if ($this->options['headers']) {
+            $headers = array_merge($this->options['headers'], $headers);
+        }
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'application/json';
         }
