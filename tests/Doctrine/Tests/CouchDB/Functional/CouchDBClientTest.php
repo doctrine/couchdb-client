@@ -693,4 +693,46 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $this->assertEquals(0, $result->getTotalRows());
     }
+
+    public function testFind(){
+      $client = $this->couchClient;
+
+      // Recreate DB
+      $client->deleteDatabase($this->getTestDatabase());
+      $client->createDatabase($this->getTestDatabase());
+
+      $ids = array();
+      $expectedRows = array();
+      foreach (range(1, 3) as $i) {
+          $document = array('foo' => 'bar' . $i);
+          list($id, $rev) = $client->postDocument($document);
+          $ids[] = $id;
+          // This structure might be dependent from couchdb version. Tested against v.2.0.0
+          $document['_id'] = $id;
+          $document['_rev'] = $rev;
+          $expectedRows[] = $document;
+      }
+
+      // Everything
+      $response = $client->find();
+
+      $this->assertEquals($expectedRows, $response->body['docs']);
+
+      //Query by a field with no index
+      $response = $client->find(['foo'=>['$eq'=>'bar1']]);
+      $this->assertEquals(array($expectedRows[0]), $response->body['docs']);
+      //No index found warning
+      $this->assertArrayHasKey('warning', $response->body);
+
+      //Query by an indexed field
+      $response = $client->find(['_id'=>['$eq'=>$ids[1]]]);
+      $this->assertEquals(array($expectedRows[1]), $response->body['docs']);
+      $this->assertArrayNotHasKey('warning', $response->body);
+
+      //Nothing
+      $response = $client->find(['_id'=>['$eq'=>null]]);
+      $this->assertEquals(array(), $response->body['docs']);
+
+    }
+
 }
