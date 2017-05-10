@@ -114,7 +114,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $updater = $this->couchClient->createBulkUpdater();
         $updater->updateDocument(array("_id" => "test1", "foo" => "bar"));
         $updater->updateDocument(array("_id" => "test2", "bar" => "baz"));
-        $result = $updater->execute();
+        $updater->execute();
 
         $changes = $this->couchClient->getChanges();
 
@@ -301,8 +301,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $client = $this->couchClient;
 
         // Recreate DB.
-        $client->deleteDatabase($this->getTestDatabase());
-        $client->createDatabase($this->getTestDatabase());
+        $this->deleteAndCreateDatabase($this->getTestDatabase());
         // Test fetching of document.
         list($id, $rev) = $client->postDocument(array('foo' => 'bar'));
         $response = $client->findDocument($id);
@@ -330,9 +329,9 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         // revisions.
         $id = 'multiple_revisions';
         $docs = array(
-            array('_id' => $id, 'foo' => 'bar1', '_rev' => '1-abc'),
-            array('_id' => $id, 'foo' => 'bar2', '_rev' => '1-bcd'),
-            array('_id' => $id, 'foo' => 'bar3', '_rev' => '1-cde')
+            array('_id' => $id, '_rev' => '1-abc','foo' => 'bar1'),
+            array('_id' => $id, '_rev' => '1-bcd','foo' => 'bar2'),
+            array('_id' => $id, '_rev' => '1-cde','foo' => 'bar3')
         );
 
         // Add the documents to the test db using Bulk API.
@@ -349,22 +348,28 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
         $this->assertObjectHasAttribute('body', $response);
         $expected = array(
-            array('ok' => $docs[2]),
+            array('ok' => $docs[0]),
             array('ok' => $docs[1]),
-            array('ok' => $docs[0])
+            array('ok' => $docs[2])
         );
+
         $this->assertEquals($expected, $response->body);
         // Test fetching of specific revisions.
         $response = $client->findRevisions(
             $id,
             array('1-abc', '1-cde', '100-ghfgf', '200-blah')
         );
+
+        $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+        $this->assertObjectHasAttribute('body', $response);
+
         $body = $response->body;
         $this->assertEquals(4, count($body));
-        // Doc with _rev = 1-cde.
-        $this->assertEquals($docs[2], $body[0]['ok']);
         // Doc with _rev = 1-abc.
-        $this->assertEquals($docs[0], $body[1]['ok']);
+        $this->assertEquals($docs[0], $body[0]['ok']);
+        // Doc with _rev = 1-cde.
+        $this->assertEquals($docs[2], $body[1]['ok']);
+
         // Missing revisions.
         $this->assertEquals(array('missing' => '100-ghfgf'), $body[2]);
         $this->assertEquals(array('missing' => '200-blah'), $body[3]);
@@ -386,6 +391,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
             // This structure might be dependent from couchdb version. Tested against v1.6.1
             $expectedRows[] = array(
                 'id' => $id,
+                'key' => $id,
                 'value' => array(
                     'rev' => $rev,
                 ),
@@ -394,24 +400,24 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
                     '_rev' => $rev,
                     'foo' => 'bar' . $i,
                 ),
-                'key' => $id,
             );
         }
 
         $response = $client->findDocuments($ids);
-        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
+
+        $this->assertEquals(array('total_rows' => 3, 'rows' => $expectedRows), $response->body);
 
         $response = $client->findDocuments($ids, 0);
-        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => $expectedRows), $response->body);
+        $this->assertEquals(array('total_rows' => 3, 'rows' => $expectedRows), $response->body);
 
         $response = $client->findDocuments($ids, 1);
-        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[0])), $response->body);
+        $this->assertEquals(array('total_rows' => 3, 'rows' => array($expectedRows[0])), $response->body);
 
         $response = $client->findDocuments($ids, 0, 2);
-        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[2])), $response->body);
+        $this->assertEquals(array('total_rows' => 3, 'rows' => array($expectedRows[2])), $response->body);
 
         $response = $client->findDocuments($ids, 1, 1);
-        $this->assertEquals(array('total_rows' => 3, 'offset' => 0, 'rows' => array($expectedRows[1])), $response->body);
+        $this->assertEquals(array('total_rows' => 3, 'rows' => array($expectedRows[1])), $response->body);
     }
 
     public function testAllDocs()
@@ -508,15 +514,20 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->couchClient->createDatabase($targetDatabase2);
 
         $client->replicate($sourceDatabase, $targetDatabase1, null, true);
-        $active_tasks = $client->getActiveTasks();
+        //Receiving empty array when requesting straight away
+        sleep(1);
+        $active_tasks = $client->getActiveTasks(true);
         $this->assertTrue(count($active_tasks) == 1);
 
         $client->replicate($sourceDatabase, $targetDatabase2, null, true);
+        sleep(1);
         $active_tasks = $client->getActiveTasks();
         $this->assertTrue(count($active_tasks) == 2);
 
         $client->replicate($sourceDatabase, $targetDatabase1, true, true);
         $client->replicate($sourceDatabase, $targetDatabase2, true, true);
+
+        sleep(1);
         $active_tasks = $client->getActiveTasks();
         $this->assertEquals(array(), $active_tasks);
 
@@ -736,21 +747,40 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
       // Everything
       $response = $client->find();
 
+      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertArrayHasKey('docs', $response->body);
+
       $this->assertEquals($expectedRows, $response->body['docs']);
 
       //Query by a field with no index
       $response = $client->find(['foo'=>['$eq'=>'bar1']]);
-      $this->assertEquals(array($expectedRows[0]), $response->body['docs']);
+
+      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertArrayHasKey('docs', $response->body);
       //No index found warning
       $this->assertArrayHasKey('warning', $response->body);
 
+      $this->assertEquals(array($expectedRows[0]), $response->body['docs']);
+
       //Query by an indexed field
       $response = $client->find(['_id'=>['$eq'=>$ids[1]]]);
-      $this->assertEquals(array($expectedRows[1]), $response->body['docs']);
+
+      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertArrayHasKey('docs', $response->body);
       $this->assertArrayNotHasKey('warning', $response->body);
+
+      $this->assertEquals(array($expectedRows[1]), $response->body['docs']);
+
 
       //Nothing
       $response = $client->find(['_id'=>['$eq'=>null]]);
+      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertArrayHasKey('docs', $response->body);
+
       $this->assertEquals(array(), $response->body['docs']);
 
       //Clean up
