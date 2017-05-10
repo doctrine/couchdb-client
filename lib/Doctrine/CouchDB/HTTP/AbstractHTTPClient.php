@@ -30,7 +30,6 @@ abstract class AbstractHTTPClient implements Client
         'username'   => null,
         'password'   => null,
         'path'       => null,
-        'headers'    => array(),
     );
 
     /**
@@ -46,11 +45,9 @@ abstract class AbstractHTTPClient implements Client
      * @param string $ip
      * @param bool $ssl
      * @param string $path
-     * @param int $timeout
-     * @param array $headers
      * @return \Doctrine\CouchDB\HTTP\AbstractHTTPClient
      */
-    public function __construct($host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null , $ssl = false, $path = null, $timeout = 10, array $headers = array())
+    public function __construct($host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null , $ssl = false, $path = null, $timeout = 10)
     {
         $this->options['host']     = (string) $host;
         $this->options['port']     = (int) $port;
@@ -59,7 +56,6 @@ abstract class AbstractHTTPClient implements Client
         $this->options['password'] = $password;
         $this->options['path']     = $path;
         $this->options['timeout']  = (float) $timeout;
-        $this->options['headers']  = $headers;
 
         if ($ip === null) {
             $this->options['ip'] = gethostbyname($this->options['host']);
@@ -90,7 +86,6 @@ abstract class AbstractHTTPClient implements Client
             break;
 
         case 'http-log':
-        case 'headers':
         case 'password':
         case 'username':
             $this->options[$option] = $value;

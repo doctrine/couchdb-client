@@ -122,7 +122,6 @@ class CouchDBClient
             'path' => null,
             'logging' => false,
             'timeout' => 10,
-            'headers' => array(),
         );
         $options = array_merge($defaults, $options);
 
@@ -140,8 +139,7 @@ class CouchDBClient
             $options['ip'],
             $options['ssl'],
             $options['path'],
-            $options['timeout'],
-            $options['headers']
+            $options['timeout']
         );
         if ($options['logging'] === true) {
             $connection = new HTTP\LoggingClient($connection);
