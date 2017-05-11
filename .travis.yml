@@ -1,4 +1,5 @@
 language: php
+sudo: true
 
 php:
   - 5.4
@@ -10,15 +11,11 @@ php:
 before_script:
   - mkdir temp
   - cd temp
-  - sudo apt-get update
-  - wget https://github.com/rebar/rebar/wiki/rebar
-  - sudo chmod +x rebar
-  - sudo cp ./rebar /usr/local/bin/
-  - wget https://raw.githubusercontent.com/afiskon/install-couchdb/master/install-couchdb.sh
-  - sudo sh install-couchdb.sh
+  - git clone https://gist.github.com/9a8e74487573f25bd83b59aac328bf6d.git .
+  - sudo sh install-couchdb-2.0.0-travis-ci.sh
   - sleep 10
   - curl -X PUT localhost:5984/doctrine_test_database
   - composer install
 
-script:
+script
   - php vendor/bin/phpunit
