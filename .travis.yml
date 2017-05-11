@@ -16,6 +16,7 @@ before_script:
   - sudo sh install-couchdb-2.0.0-travis-ci.sh
   - sleep 10
   - curl -X PUT localhost:5984/doctrine_test_database
+  - cd ..
   - composer install
 
 script:
