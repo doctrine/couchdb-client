@@ -394,7 +394,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         foreach (range(1, 3) as $i) {
             list($id, $rev) = $client->postDocument(array('foo' => 'bar' . $i));
             $ids[] = $id;
-            // This structure might be dependent from couchdb version. Tested against v1.6.1
+            // This structure might be dependent from couchdb version. Tested against v2.0.0
             $expectedRows[] = array(
                 'id' => $id,
                 'key' => $id,
@@ -439,7 +439,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         foreach (range(1, 3) as $i) {
             list($id, $rev) = $client->postDocument(array('foo' => 'bar' . $i));
             $ids[] = $id;
-            // This structure might be dependent from couchdb version. Tested against v1.6.1
+            // This structure might be dependent from couchdb version. Tested against v2.0.0
             $expectedRows[] = array(
                 'id' => $id,
                 'value' => array(
@@ -744,7 +744,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
           $document = array('foo' => 'bar' . $i);
           list($id, $rev) = $client->postDocument($document);
           $ids[] = $id;
-          // This structure might be dependent from couchdb version. Tested against v.2.0.0
+          // This structure might be dependent from couchdb version. Tested against v2.0.0
           $document['_id'] = $id;
           $document['_rev'] = $rev;
           $expectedRows[] = $document;
