@@ -1,8 +1,8 @@
 # Doctrine CouchDB Client
 
-[![Build Status](https://travis-ci.org/doctrine/couchdb-client.png?branch=master)](https://travis-ci.org/doctrine/couchdb-client)
+[![Build Status](https://travis-ci.org/robsonvn/couchdb-client.png?branch=master)](https://travis-ci.org/robsonvn/couchdb-client)
 
-Simple API that wraps around CouchDBs HTTP API.
+Simple API that wraps around CouchDBs v2.0.0 HTTP API.
 
 ## Features
 
@@ -18,6 +18,7 @@ Simple API that wraps around CouchDBs HTTP API.
 * Compaction Info and Triggering APIs
 * Replication API
 * Symfony Console Commands
+* Find Documents using Mango Query
 
 ## Installation
 
@@ -62,6 +63,10 @@ $client->deleteDocument($id, $rev);
 
 // Delete a database.
 $client->deleteDatabase($client->getDatabase());
+
+//Search documents using Mango Query CouchDB v2.0.0
+$allDocs = $client->find(['_id'=>['$gt'=>null]]);
+
 ```
 
 ### Views

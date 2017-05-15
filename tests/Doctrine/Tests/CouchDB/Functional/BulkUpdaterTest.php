@@ -42,47 +42,7 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
         $this->assertEquals(201, $response->status);
         $this->assertEquals(array(), $response->body);
     }
-
-    /**
-     * @depends testExecute
-     */
-    public function testSetAllOrNothing()
-    {
-        $docs[] = array("_id" => "test1", "foo" => "bar");
-        $docs[] = array("_id" => "test2", "bar" => "baz");
-        $this->bulkUpdater->updateDocuments($docs);
-        $response = $this->bulkUpdater->execute();
-        $revTest1 = $response->body[0]["rev"];
-
-        // Test with all_or_nothing=false.
-        // Try to update one doc with wrong or no _rev say test2. Only test1 should be updated.
-        $bulkUpdater2 = $this->couchClient->createBulkUpdater();
-        $bulkUpdater2->setAllOrNothing(false);
-        $docs2 = $docs;
-        $docs2[0]["should_be_updated"] = "true";
-        $docs2[0]["_rev"] = $revTest1;
-        $docs2[1]["should_be_updated"] = "false";
-        $bulkUpdater2->updateDocuments($docs2);
-        $response = $bulkUpdater2->execute();
-        $this->assertEquals(2, count($response->body));
-        $this->assertEquals(true, isset($response->body[0]["ok"]));
-        $this->assertEquals(false, isset($response->body[1]["ok"]));
-
-        // Test with all_or_nothing=true.
-        // Try to update one doc with wrong or no _rev say test2. Still both doc should get updated in case if there is
-        // any update at all.
-        $bulkUpdater3 = $this->couchClient->createBulkUpdater();
-        $bulkUpdater3->setAllOrNothing(true);
-        $docs3 = $docs;
-        $docs3[0]["should_be_updated"] = "true";
-        $docs3[0]["_rev"] = $revTest1;
-        $docs3[1]["should_be_updated"] = "true";
-        $bulkUpdater3->updateDocuments($docs3);
-        $response = $bulkUpdater3->execute();
-        $this->assertEquals(2, count($response->body));
-        $this->assertEquals(true, isset($response->body[0]["ok"]));
-        $this->assertEquals(true, isset($response->body[1]["ok"]));
-    }
+  
 
     /**
      * @depends testExecute
