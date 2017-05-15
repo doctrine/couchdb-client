@@ -62,7 +62,7 @@ class CouchDBClient
      */
     private $version = null;
 
-    static private $clients = array(
+    private static $clients = array(
         'socket' => 'Doctrine\CouchDB\HTTP\SocketClient',
         'stream' => 'Doctrine\CouchDB\HTTP\StreamClient',
     );
@@ -74,13 +74,13 @@ class CouchDBClient
      * @return CouchDBClient
      * @throws \InvalidArgumentException
      */
-    static public function create(array $options)
+    public static function create(array $options)
     {
         if (isset($options['url'])) {
             $urlParts = parse_url($options['url']);
 
             foreach ($urlParts as $part => $value) {
-                switch($part) {
+                switch ($part) {
                     case 'host':
                     case 'user':
                     case 'port':
@@ -196,20 +196,40 @@ class CouchDBClient
         return $response->body['uuids'];
     }
 
+    public function getMango(){
+      return new Mango($this->httpClient, $this->databaseName);
+    }
+
     /**
     * Find documents using Mango Query
     * @param array $selector
+    * @param array $fields
+    * @param array $sort
+    * @param int $limit = 25 [CouchDB default value]
+    * @param int $skip = 0
+    * @param array $index
     * @return HTTP\Response
     */
-    public function find(array $selector = [])
+
+    public function find(array $selector = null, array $fields = [], array $sort = [],  $limit = 25, $skip = 0, array $index = null)
     {
-      $documentPath = '/' . $this->databaseName."/_find";
 
-      if(key($selector)!=='selector'){
-        $selector = ['selector' => $selector];
-      }
+        $documentPath = '/' . $this->databaseName."/_find";
 
-      return $this->httpClient->request('POST', $documentPath, json_encode($selector,JSON_FORCE_OBJECT));
+        $params = [
+        "fields" => $fields,
+        "sort" => $sort,
+        "limit" => $limit,
+        "skip" => $skip
+      ];
+
+        $params['selector'] = ($selector) ? $selector : new \StdClass();
+
+        if($index){
+          $params['index'] = $index;
+        }
+
+        return $this->httpClient->request('POST', $documentPath, json_encode($params));
     }
 
     /**
@@ -410,7 +430,6 @@ class CouchDBClient
         $response = '';
 
         if ($method == "GET") {
-
             foreach ($params as $key => $value) {
                 if (isset($params[$key]) === true && is_bool($value) === true) {
                     $params[$key] = ($value) ? 'true' : 'false';
@@ -421,7 +440,6 @@ class CouchDBClient
                 $path = $path.'?'.$query;
             }
             $response = $this->httpClient->request('GET', $path);
-
         } else {
             $path .= '?filter=_doc_ids';
             $response = $this->httpClient->request('POST', $path, json_encode($params));
@@ -530,7 +548,7 @@ class CouchDBClient
         $data['_id'] = '_design/' . $designDocName;
 
         $documentPath = '/' . $this->databaseName . '/' . $data['_id'];
-        $response     = $this->httpClient->request( 'GET', $documentPath );
+        $response     = $this->httpClient->request('GET', $documentPath);
 
         if ($response->status == 200) {
             $docData = $response->body;
@@ -709,7 +727,6 @@ class CouchDBClient
             null,
             array('Accept' => 'multipart/mixed')
         );
-
     }
 
     /**
@@ -771,7 +788,6 @@ class CouchDBClient
         }
         // Everything seems okay. Return the connection resource.
         return $stream;
-
     }
 
     /**
