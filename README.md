@@ -1,6 +1,8 @@
-# Doctrine CouchDB Client
+# Doctrine CouchDB v2.0.0 Client
 
 [![Build Status](https://travis-ci.org/robsonvn/couchdb-client.png?branch=master)](https://travis-ci.org/robsonvn/couchdb-client)
+[![StyleCI](https://styleci.io/repos/90809440/shield?style=flat)](https://styleci.io/repos/90809440)
+
 
 Simple API that wraps around CouchDBs v2.0.0 HTTP API.
 
@@ -66,6 +68,21 @@ $client->deleteDatabase($client->getDatabase());
 
 //Search documents using Mango Query CouchDB v2.0.0
 $allDocs = $client->find(['_id'=>['$gt'=>null]]);
+
+$limit = 10;
+$skip = 1;
+$docs = $client->find(
+        ['$and'=> [
+            [
+              'name'=> [
+                '$eq'=> 'Under the Dome',
+              ],
+              'genres'=> [
+                '$in'=> ['Drama','Comedy'],
+              ],
+            ],
+          ],
+        ],['_id', 'name'], [['_id'=>'desc']],$limit,$skip);
 
 ```
 
