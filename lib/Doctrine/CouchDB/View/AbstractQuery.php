@@ -36,12 +36,12 @@ abstract class AbstractQuery
     /**
      * @var array
      */
-    protected $params = array();
+    protected $params = [];
 
     /**
-     * @param Client $client
-     * @param string $designDocName
-     * @param string $viewName
+     * @param Client         $client
+     * @param string         $designDocName
+     * @param string         $viewName
      * @param DesignDocument $doc
      */
     public function __construct(Client $client, $databaseName, $designDocName, $viewName, DesignDocument $doc = null)
@@ -54,7 +54,8 @@ abstract class AbstractQuery
     }
 
     /**
-     * @param  string $key
+     * @param string $key
+     *
      * @return mixed
      */
     public function getParameter($key)
@@ -62,7 +63,6 @@ abstract class AbstractQuery
         if (isset($this->params[$key])) {
             return $this->params[$key];
         }
-        return null;
     }
 
     abstract protected function getHttpQuery();
@@ -80,12 +80,12 @@ abstract class AbstractQuery
     protected function doExecute()
     {
         $path = $this->getHttpQuery();
-        $method = "GET";
+        $method = 'GET';
         $data = null;
 
-        if ($this->getParameter("keys") !== null) {
-            $method = "POST";
-            $data = json_encode(array("keys" => $this->getParameter("keys")));
+        if ($this->getParameter('keys') !== null) {
+            $method = 'POST';
+            $data = json_encode(['keys' => $this->getParameter('keys')]);
         }
 
         $response = $this->client->request($method, $path, $data);
@@ -98,38 +98,41 @@ abstract class AbstractQuery
         if ($response->status >= 400) {
             throw HTTPException::fromResponse($path, $response);
         }
+
         return $response;
     }
 
     /**
      * @param $response
+     *
      * @return Result
      */
     abstract protected function createResult($response);
 
     /**
-     * Create non existing view
+     * Create non existing view.
      *
-     * @return void
      * @throws \Doctrine\CouchDB\JsonDecodeException
      * @throws \Exception
+     *
+     * @return void
      */
     public function createDesignDocument()
     {
         if (!$this->doc) {
-            throw new \Exception("No DesignDocument Class is connected to this view query, cannot create the design document with its corresponding view automatically!");
+            throw new \Exception('No DesignDocument Class is connected to this view query, cannot create the design document with its corresponding view automatically!');
         }
 
         $data = $this->doc->getData();
         if ($data === null) {
             throw \Doctrine\CouchDB\JsonDecodeException::fromLastJsonError();
         }
-        $data['_id'] = '_design/' . $this->designDocumentName;
+        $data['_id'] = '_design/'.$this->designDocumentName;
 
         $response = $this->client->request(
-            "PUT",
+            'PUT',
             sprintf(
-                "/%s/_design/%s",
+                '/%s/_design/%s',
                 $this->databaseName,
                 $this->designDocumentName
             ),

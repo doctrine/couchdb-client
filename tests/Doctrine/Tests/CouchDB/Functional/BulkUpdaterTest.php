@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Doctrine\Tests\CouchDB\Functional;
 
 use Doctrine\CouchDB\CouchDBClient;
@@ -28,7 +27,7 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
     public function testGetPath()
     {
         $this->assertEquals(
-            '/' . $this->getBulkTestDatabase() . '/_bulk_docs',
+            '/'.$this->getBulkTestDatabase().'/_bulk_docs',
             $this->bulkUpdater->getpath()
         );
     }
@@ -40,9 +39,8 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
     {
         $response = $this->bulkUpdater->execute();
         $this->assertEquals(201, $response->status);
-        $this->assertEquals(array(), $response->body);
+        $this->assertEquals([], $response->body);
     }
-  
 
     /**
      * @depends testExecute
@@ -50,13 +48,12 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
     public function testSetNewEdits()
     {
         $this->bulkUpdater->setNewEdits(false);
-        $doc = array("_id" => "test1", "foo" => "bar", "_rev" => "10-gsoc");
+        $doc = ['_id' => 'test1', 'foo' => 'bar', '_rev' => '10-gsoc'];
         $this->bulkUpdater->updateDocument($doc);
         $response = $this->bulkUpdater->execute();
-        $response = $this->couchClient->findDocument("test1");
+        $response = $this->couchClient->findDocument('test1');
         // _rev remains same.
         $this->assertEquals($doc, $response->body);
-
     }
 
     /**
@@ -64,10 +61,10 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
      */
     public function testUpdateDocument()
     {
-        $docs["test1"] = array("_id" => "test1", "foo" => "bar");
-        $docs["test2"] = array("_id" => "test2", "bar" => "baz");
-        $this->bulkUpdater->updateDocument($docs["test1"]);
-        $this->bulkUpdater->updateDocument($docs["test2"]);
+        $docs['test1'] = ['_id' => 'test1', 'foo' => 'bar'];
+        $docs['test2'] = ['_id' => 'test2', 'bar' => 'baz'];
+        $this->bulkUpdater->updateDocument($docs['test1']);
+        $this->bulkUpdater->updateDocument($docs['test2']);
         $response = $this->bulkUpdater->execute();
 
         // Insert the rev values.
@@ -75,9 +72,9 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
             $docs[$res['id']]['_rev'] = $res['rev'];
         }
 
-        $response = $this->couchClient->findDocument("test1");
+        $response = $this->couchClient->findDocument('test1');
         $this->assertEquals($docs['test1'], $response->body);
-        $response = $this->couchClient->findDocument("test2");
+        $response = $this->couchClient->findDocument('test2');
         $this->assertEquals($docs['test2'], $response->body);
     }
 
@@ -86,7 +83,7 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
      */
     public function testUpdateDocuments()
     {
-        $docs[] = array("_id" => "test1", "foo" => "bar");
+        $docs[] = ['_id' => 'test1', 'foo' => 'bar'];
         $docs[] = '{"_id": "test2","baz": "foo"}';
 
         $this->bulkUpdater->updateDocuments($docs);
@@ -98,13 +95,13 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
             if ($id == 'test1') {
                 $docs[0]['_rev'] = $res['rev'];
             } elseif ($id == 'test2') {
-                $docs[1] = substr($docs[1], 0, strlen($docs[1])-1) . ',"_rev": "'. $res['rev'] . '"}';
+                $docs[1] = substr($docs[1], 0, strlen($docs[1]) - 1).',"_rev": "'.$res['rev'].'"}';
             }
         }
 
-        $response = $this->couchClient->findDocument("test1");
+        $response = $this->couchClient->findDocument('test1');
         $this->assertEquals($docs[0], $response->body);
-        $response = $this->couchClient->findDocument("test2");
+        $response = $this->couchClient->findDocument('test2');
         $this->assertEquals(json_decode($docs[1], true), $response->body);
     }
 
@@ -113,22 +110,20 @@ class BulkUpdaterTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
      */
     public function testDeleteDocument()
     {
-        $doc = array("_id" => "test1", "foo" => "bar");
+        $doc = ['_id' => 'test1', 'foo' => 'bar'];
         $this->bulkUpdater->updateDocument($doc);
         $response = $this->bulkUpdater->execute();
-        $rev = $response->body[0]["rev"];
+        $rev = $response->body[0]['rev'];
 
         $bulkUpdater2 = $this->couchClient->createBulkUpdater();
-        $bulkUpdater2->deleteDocument("test1", $rev);
+        $bulkUpdater2->deleteDocument('test1', $rev);
         $response = $bulkUpdater2->execute();
-        $response = $this->couchClient->findDocument("test1");
+        $response = $this->couchClient->findDocument('test1');
         $this->assertEquals(404, $response->status);
-
     }
 
     public function tearDown()
     {
         $this->couchClient->deleteDatabase($this->getBulkTestDatabase());
     }
-
 }

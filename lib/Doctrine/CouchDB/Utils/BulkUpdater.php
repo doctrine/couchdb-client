@@ -17,24 +17,25 @@
  * <http://www.doctrine-project.org>.
  */
 
-
 namespace Doctrine\CouchDB\Utils;
 
 use Doctrine\CouchDB\HTTP\Client;
 
 /**
- * Bulk updater class
+ * Bulk updater class.
  *
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
+ *
  * @link        www.doctrine-project.com
  * @since       1.0
+ *
  * @author      Benjamin Eberlei <kontakt@beberlei.de>
  */
 class BulkUpdater
 {
-    private $data = array('docs' => array());
+    private $data = ['docs' => []];
 
-    private $requestHeaders = array();
+    private $requestHeaders = [];
 
     private $httpClient;
 
@@ -60,17 +61,17 @@ class BulkUpdater
 
     public function deleteDocument($id, $rev)
     {
-        $this->data['docs'][] = array('_id' => $id, '_rev' => $rev, '_deleted' => true);
+        $this->data['docs'][] = ['_id' => $id, '_rev' => $rev, '_deleted' => true];
     }
 
     public function setNewEdits($newEdits)
     {
-        $this->data["new_edits"] = (bool)$newEdits;
+        $this->data['new_edits'] = (bool) $newEdits;
     }
 
     public function setFullCommitHeader($commit)
     {
-        $this->requestHeaders['X-Couch-Full-Commit'] = (bool)$commit;
+        $this->requestHeaders['X-Couch-Full-Commit'] = (bool) $commit;
     }
 
     public function execute()
@@ -80,6 +81,6 @@ class BulkUpdater
 
     public function getPath()
     {
-        return '/' . $this->databaseName . '/_bulk_docs';
+        return '/'.$this->databaseName.'/_bulk_docs';
     }
 }

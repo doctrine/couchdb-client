@@ -19,11 +19,10 @@
 
 namespace Doctrine\CouchDB\Tools\Console\Command;
 
-use Symfony\Component\Console\Input\InputArgument,
-    Symfony\Component\Console\Input\InputOption,
-    Symfony\Component\Console\Input\InputInterface,
-    Symfony\Component\Console\Output\OutputInterface,
-    Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class CompactViewCommand extends Command
 {
@@ -31,9 +30,9 @@ class CompactViewCommand extends Command
     {
         $this->setName('couchdb:maintenance:compact-view')
              ->setDescription('Compat the given view')
-             ->setDefinition(array(
+             ->setDefinition([
                  new InputArgument('designdoc', InputArgument::REQUIRED, 'Design document name', null),
-             ));
+             ]);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -42,6 +41,6 @@ class CompactViewCommand extends Command
         /* @var $couchClient \Doctrine\CouchDB\CouchDBClient */
 
         $data = $couchClient->compactView($input->getArgument('designdoc'));
-        $output->writeln("View compact started.");
+        $output->writeln('View compact started.');
     }
 }

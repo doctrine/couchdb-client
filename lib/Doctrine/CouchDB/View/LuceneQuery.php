@@ -7,18 +7,18 @@ use Doctrine\CouchDB\HTTP\Client;
 class LuceneQuery extends AbstractQuery
 {
     /**
-     * The CouchDB Lucene Handler name, probably defaults to _fti
+     * The CouchDB Lucene Handler name, probably defaults to _fti.
      *
      * @var string
      */
     private $handlerName;
 
     /**
-     * @param Client $client
-     * @param string $databaseName
-     * @param string $handlerName
-     * @param string $viewName
-     * @param string $designDocName
+     * @param Client         $client
+     * @param string         $databaseName
+     * @param string         $handlerName
+     * @param string         $viewName
+     * @param string         $designDocName
      * @param DesignDocument $doc
      */
     public function __construct(Client $client, $databaseName, $handlerName, $designDocName, $viewName, DesignDocument $doc = null)
@@ -30,18 +30,19 @@ class LuceneQuery extends AbstractQuery
     protected function getHttpQuery()
     {
         return sprintf(
-            "/%s/local/%s/_design/%s/%s?%s",
+            '/%s/local/%s/_design/%s/%s?%s',
             $this->handlerName,
             $this->databaseName,
             $this->designDocumentName,
             $this->viewName,
-            http_build_query( $this->params )
+            http_build_query($this->params)
         );
     }
 
     public function setAnalyzer($analyzer)
     {
         $this->params['analyzer'] = $analyzer;
+
         return $this;
     }
 
@@ -51,14 +52,16 @@ class LuceneQuery extends AbstractQuery
     }
 
     /**
-     * Automatically fetch and include the document which emitted each view entry
+     * Automatically fetch and include the document which emitted each view entry.
      *
-     * @param  bool $flag
+     * @param bool $flag
+     *
      * @return Query
      */
     public function setIncludeDocs($flag)
     {
         $this->params['include_docs'] = $flag;
+
         return $this;
     }
 
@@ -70,6 +73,7 @@ class LuceneQuery extends AbstractQuery
     public function setLimit($limit)
     {
         $this->params['limit'] = $limit;
+
         return $this;
     }
 
@@ -81,6 +85,7 @@ class LuceneQuery extends AbstractQuery
     public function setQuery($query)
     {
         $this->params['q'] = $query;
+
         return $this;
     }
 
@@ -92,12 +97,14 @@ class LuceneQuery extends AbstractQuery
     public function setSkip($skip)
     {
         $this->params['skip'] = $skip;
+
         return $this;
     }
 
     public function setSort($sort)
     {
         $this->params['sort'] = $sort;
+
         return $this;
     }
 
@@ -108,11 +115,13 @@ class LuceneQuery extends AbstractQuery
         } else {
             unset($this->params['stale']);
         }
+
         return $this;
     }
 
     /**
      * @param \Doctrine\CouchDB\HTTP\Response $response
+     *
      * @return LuceneResult
      */
     protected function createResult($response)
