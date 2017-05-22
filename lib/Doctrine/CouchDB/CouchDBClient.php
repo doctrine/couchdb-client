@@ -203,11 +203,6 @@ class CouchDBClient
         return $response->body['uuids'];
     }
 
-    public function getMango()
-    {
-        return new Mango($this->httpClient, $this->databaseName);
-    }
-
     /**
      * Find documents using Mango Query.
      *
