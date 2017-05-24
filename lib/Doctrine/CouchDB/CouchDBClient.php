@@ -234,40 +234,44 @@ class CouchDBClient
 
         return $this->httpClient->request('POST', $documentPath, json_encode($params));
     }
+
     /**
-    * Create a mango query index and return the HTTP response
-    * @param array $fields - index fields
-    * @param string $ddoc  - design document name
-    * @param string $name  - view name
-    */
-    public function createMangoIndex($fields, $ddoc = null, $name = null){
+     * Create a mango query index and return the HTTP response.
+     *
+     * @param array  $fields - index fields
+     * @param string $ddoc   - design document name
+     * @param string $name   - view name
+     */
+    public function createMangoIndex($fields, $ddoc = null, $name = null)
+    {
+        $documentPath = '/'.$this->databaseName.'/_index';
 
-      $documentPath = '/'.$this->databaseName.'/_index';
+        $params = ['index'=>['fields'=>$fields]];
 
-      $params = array('index'=>array('fields'=>$fields));
+        if ($ddoc) {
+            $params['ddoc'] = $ddoc;
+        }
+        if ($name) {
+            $params['name'] = $name;
+        }
 
-      if ($ddoc) {
-          $params['ddoc'] = $ddoc;
-      }
-      if ($name) {
-          $params['name'] = $name;
-      }
-
-      return $this->httpClient->request('POST', $documentPath, json_encode($params));
+        return $this->httpClient->request('POST', $documentPath, json_encode($params));
     }
 
     /**
-    * Delete a mango query index and return the HTTP response
-    * @param string $ddoc  - design document name
-    * @param string $name  - view name
-    */
-    public function deleteMangoIndex($ddoc,$name){
-      $documentPath = '/'.$this->databaseName.'/_index/_design/'.$ddoc.'/json/'.$name;
-      $response =  $this->httpClient->request('DELETE', $documentPath);
+     * Delete a mango query index and return the HTTP response.
+     *
+     * @param string $ddoc - design document name
+     * @param string $name - view name
+     */
+    public function deleteMangoIndex($ddoc, $name)
+    {
+        $documentPath = '/'.$this->databaseName.'/_index/_design/'.$ddoc.'/json/'.$name;
+        $response = $this->httpClient->request('DELETE', $documentPath);
 
-      return (isset($response->body['ok'])) ? true : false;
-
+        return (isset($response->body['ok'])) ? true : false;
     }
+
     /**
      * Find a document by ID and return the HTTP response.
      *

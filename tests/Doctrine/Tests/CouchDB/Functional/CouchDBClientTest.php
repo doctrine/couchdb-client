@@ -12,7 +12,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
      */
     private $couchClient;
 
-
     public function setUp()
     {
         $this->couchClient = $this->createCouchDBClient();
@@ -870,71 +869,70 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertObjectHasAttribute('body', $response);
         $this->assertArrayHasKey('docs', $response->body);
         $this->assertEquals($expected, $response->body['docs']);
-
-
     }
 
-    public function testMangoIndexAndSort(){
-      //Fill database
+    public function testMangoIndexAndSort()
+    {
+        //Fill database
       $client = $this->couchClient;
-      $string = file_get_contents(__DIR__.'/../../datasets/shows.json');
-      $shows = json_decode($string, true);
-      $updater = $this->couchClient->createBulkUpdater();
-      $updater->updateDocuments($shows);
-      $response = $updater->execute();
+        $string = file_get_contents(__DIR__.'/../../datasets/shows.json');
+        $shows = json_decode($string, true);
+        $updater = $this->couchClient->createBulkUpdater();
+        $updater->updateDocuments($shows);
+        $response = $updater->execute();
 
       //create index
       $fields = [['name'=>'desc']];
-      $response = $this->couchClient->createMangoIndex($fields,'index-test','name-desc');
+        $response = $this->couchClient->createMangoIndex($fields, 'index-test', 'name-desc');
 
-      $this->assertObjectHasAttribute('body', $response);
-      $this->assertEquals('created', $response->body['result']);
-      $this->assertEquals('_design/index-test', $response->body['id']);
-      $this->assertEquals('name-desc', $response->body['name']);
+        $this->assertObjectHasAttribute('body', $response);
+        $this->assertEquals('created', $response->body['result']);
+        $this->assertEquals('_design/index-test', $response->body['id']);
+        $this->assertEquals('name-desc', $response->body['name']);
 
-      $response = $this->couchClient->find(['name'=>['$eq'=>'Under the Dome']]);
-      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
-      $this->assertObjectHasAttribute('body', $response);
-      $this->assertArrayHasKey('docs', $response->body);
-      $this->assertArrayNotHasKey('warning', $response->body);
+        $response = $this->couchClient->find(['name'=>['$eq'=>'Under the Dome']]);
+        $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+        $this->assertObjectHasAttribute('body', $response);
+        $this->assertArrayHasKey('docs', $response->body);
+        $this->assertArrayNotHasKey('warning', $response->body);
 
       //Test sort
-      $response = $this->couchClient->find(['name'=>['$gt'=>null]],[],[['name'=>'desc']]);
-      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
-      $this->assertObjectHasAttribute('body', $response);
-      $this->assertArrayHasKey('docs', $response->body);
-      $this->assertArrayNotHasKey('warning', $response->body);
+      $response = $this->couchClient->find(['name'=>['$gt'=>null]], [], [['name'=>'desc']]);
+        $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+        $this->assertObjectHasAttribute('body', $response);
+        $this->assertArrayHasKey('docs', $response->body);
+        $this->assertArrayNotHasKey('warning', $response->body);
 
-      $this->assertEquals('Z Nation', $response->body['docs'][0]['name']);
+        $this->assertEquals('Z Nation', $response->body['docs'][0]['name']);
 
-      $deleted = $this->couchClient->deleteMangoIndex('index-test','name-desc');
-      $this->assertTrue($deleted);
+        $deleted = $this->couchClient->deleteMangoIndex('index-test', 'name-desc');
+        $this->assertTrue($deleted);
 
       //create subdocument index
-      $fields = [['rating.average'=>'desc'],['name'=>'desc']];
-      $response = $this->couchClient->createMangoIndex($fields,'index-test','rating.average-desc');
-      $response = $this->couchClient->find(['rating.average'=>['$gt'=>null]],[],$fields);
-      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
-      $this->assertObjectHasAttribute('body', $response);
-      $this->assertArrayHasKey('docs', $response->body);
-      $this->assertArrayNotHasKey('warning', $response->body);
-      $this->assertEquals('The Wire', $response->body['docs'][0]['name']);
+      $fields = [['rating.average'=>'desc'], ['name'=>'desc']];
+        $response = $this->couchClient->createMangoIndex($fields, 'index-test', 'rating.average-desc');
+        $response = $this->couchClient->find(['rating.average'=>['$gt'=>null]], [], $fields);
+        $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+        $this->assertObjectHasAttribute('body', $response);
+        $this->assertArrayHasKey('docs', $response->body);
+        $this->assertArrayNotHasKey('warning', $response->body);
+        $this->assertEquals('The Wire', $response->body['docs'][0]['name']);
 
       //Create another index in the same document
-      $fields = [['type'=>'asc'],['name'=>'asc']];
-      $response = $this->couchClient->createMangoIndex($fields,'index-test','type-asc&name-asc');
-      $this->assertObjectHasAttribute('body', $response);
-      $this->assertEquals('created', $response->body['result']);
-      $this->assertEquals('_design/index-test', $response->body['id']);
-      $this->assertEquals('type-asc&name-asc', $response->body['name']);
-      $response = $this->couchClient->find(['type'=>['$gt'=>null]],[],$fields);
-      $this->assertEquals('American Dad!', $response->body['docs'][0]['name']);
+      $fields = [['type'=>'asc'], ['name'=>'asc']];
+        $response = $this->couchClient->createMangoIndex($fields, 'index-test', 'type-asc&name-asc');
+        $this->assertObjectHasAttribute('body', $response);
+        $this->assertEquals('created', $response->body['result']);
+        $this->assertEquals('_design/index-test', $response->body['id']);
+        $this->assertEquals('type-asc&name-asc', $response->body['name']);
+        $response = $this->couchClient->find(['type'=>['$gt'=>null]], [], $fields);
+        $this->assertEquals('American Dad!', $response->body['docs'][0]['name']);
 
       //Find for impacts
-      $response = $this->couchClient->find(['rating.average'=>['$gt'=>null]],[],[['rating.average'=>'desc'],['name'=>'desc']]);
-      $this->assertObjectHasAttribute('body', $response);
-      $this->assertArrayHasKey('docs', $response->body);
-      $this->assertArrayNotHasKey('warning', $response->body);
-      $this->assertEquals('The Wire', $response->body['docs'][0]['name']);    
+      $response = $this->couchClient->find(['rating.average'=>['$gt'=>null]], [], [['rating.average'=>'desc'], ['name'=>'desc']]);
+        $this->assertObjectHasAttribute('body', $response);
+        $this->assertArrayHasKey('docs', $response->body);
+        $this->assertArrayNotHasKey('warning', $response->body);
+        $this->assertEquals('The Wire', $response->body['docs'][0]['name']);
     }
 }
