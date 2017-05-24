@@ -12,17 +12,13 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
      */
     private $couchClient;
 
+
     public function setUp()
     {
         $this->couchClient = $this->createCouchDBClient();
-        $this->deleteAndCreateDatabase($this->getTestDatabase());
-    }
-
-    public function deleteAndCreateDatabase($databaseName)
-    {
-        $this->couchClient->deleteDatabase($databaseName);
+        $this->couchClient->deleteDatabase($this->getTestDatabase());
         sleep(0.5);
-        $this->couchClient->createDatabase($databaseName);
+        $this->couchClient->createDatabase($this->getTestDatabase());
     }
 
     public function testGetUuids()
@@ -304,9 +300,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     public function testFindDocument()
     {
         $client = $this->couchClient;
-
-        // Recreate DB.
-        $this->deleteAndCreateDatabase($this->getTestDatabase());
         // Test fetching of document.
         list($id, $rev) = $client->postDocument(['foo' => 'bar']);
         $response = $client->findDocument($id);
@@ -325,10 +318,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     public function testFindRevisions()
     {
         $client = $this->couchClient;
-
-        // Recreate DB.
-        $client->deleteDatabase($this->getTestDatabase());
-        $client->createDatabase($this->getTestDatabase());
 
         // The _id of all the documents is same. So we will get multiple leaf
         // revisions.
@@ -384,10 +373,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     {
         $client = $this->couchClient;
 
-        // Recreate DB
-        $client->deleteDatabase($this->getTestDatabase());
-        $client->createDatabase($this->getTestDatabase());
-
         $ids = [];
         $expectedRows = [];
         foreach (range(1, 3) as $i) {
@@ -428,10 +413,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     public function testAllDocs()
     {
         $client = $this->couchClient;
-
-        // Recreate DB
-        $client->deleteDatabase($this->getTestDatabase());
-        $client->createDatabase($this->getTestDatabase());
 
         $ids = [];
         $expectedRows = [];
@@ -586,8 +567,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     {
         $client = $this->couchClient;
 
-        $this->deleteAndCreateDatabase($this->getTestDatabase());
-
         // Doc id.
         $id = 'multiple_attachments';
         // Document with attachments.
@@ -621,7 +600,9 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         // Create the copy database and a copyClient to interact with it.
         $copyDb = $this->getTestDatabase().'_copy';
 
-        $this->deleteAndCreateDatabase($copyDb);
+        $this->couchClient->deleteDatabase($copyDb);
+        sleep(0.5);
+        $this->couchClient->createDatabase($copyDb);
 
         $copyClient = new CouchDBClient($client->getHttpClient(), $copyDb);
 
@@ -640,9 +621,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertEquals(1, count($responses));
         $this->assertArrayHasKey('ok', $responses[0]);
         $this->assertEquals(true, $responses[0]['ok']);
-        // Clean up.
-        $client->deleteDatabase($this->getTestDatabase());
-        $client->createDatabase($this->getTestDatabase());
         $client->deleteDatabase($copyDb);
     }
 
@@ -652,9 +630,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     public function testGetChangesAsStream()
     {
         $client = $this->couchClient;
-        // Recreate DB
-        $client->deleteDatabase($this->getTestDatabase());
-        $client->createDatabase($this->getTestDatabase());
 
         // Stream of changes feed.
         $stream = $client->getChangesAsStream();
@@ -713,9 +688,6 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     {
         $client = $this->couchClient;
 
-      //Recreate DB
-      $this->deleteAndCreateDatabase($this->getTestDatabase());
-
         $string = file_get_contents(__DIR__.'/../../datasets/shows.json');
         $shows = json_decode($string, true);
 
@@ -727,8 +699,8 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
             $shows[$key] = ['_id'=>$row['id'], '_rev'=>$row['rev']] + $shows[$key];
         }
 
-      // Everything
-      $response = $client->find([], [], [], 999);
+        //Everything
+        $response = $client->find([], [], [], 999);
 
         $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
         $this->assertObjectHasAttribute('body', $response);
@@ -899,7 +871,70 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $this->assertArrayHasKey('docs', $response->body);
         $this->assertEquals($expected, $response->body['docs']);
 
-      //Clean up*/
-      $client->deleteDatabase($this->getTestDatabase());
+
+    }
+
+    public function testMangoIndexAndSort(){
+      //Fill database
+      $client = $this->couchClient;
+      $string = file_get_contents(__DIR__.'/../../datasets/shows.json');
+      $shows = json_decode($string, true);
+      $updater = $this->couchClient->createBulkUpdater();
+      $updater->updateDocuments($shows);
+      $response = $updater->execute();
+
+      //create index
+      $fields = [['name'=>'desc']];
+      $response = $this->couchClient->createMangoIndex($fields,'index-test','name-desc');
+
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertEquals('created', $response->body['result']);
+      $this->assertEquals('_design/index-test', $response->body['id']);
+      $this->assertEquals('name-desc', $response->body['name']);
+
+      $response = $this->couchClient->find(['name'=>['$eq'=>'Under the Dome']]);
+      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertArrayHasKey('docs', $response->body);
+      $this->assertArrayNotHasKey('warning', $response->body);
+
+      //Test sort
+      $response = $this->couchClient->find(['name'=>['$gt'=>null]],[],[['name'=>'desc']]);
+      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertArrayHasKey('docs', $response->body);
+      $this->assertArrayNotHasKey('warning', $response->body);
+
+      $this->assertEquals('Z Nation', $response->body['docs'][0]['name']);
+
+      $deleted = $this->couchClient->deleteMangoIndex('index-test','name-desc');
+      $this->assertTrue($deleted);
+
+      //create subdocument index
+      $fields = [['rating.average'=>'desc'],['name'=>'desc']];
+      $response = $this->couchClient->createMangoIndex($fields,'index-test','rating.average-desc');
+      $response = $this->couchClient->find(['rating.average'=>['$gt'=>null]],[],$fields);
+      $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertArrayHasKey('docs', $response->body);
+      $this->assertArrayNotHasKey('warning', $response->body);
+      $this->assertEquals('The Wire', $response->body['docs'][0]['name']);
+
+      //Create another index in the same document
+      $fields = [['type'=>'asc'],['name'=>'asc']];
+      $response = $this->couchClient->createMangoIndex($fields,'index-test','type-asc&name-asc');
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertEquals('created', $response->body['result']);
+      $this->assertEquals('_design/index-test', $response->body['id']);
+      $this->assertEquals('type-asc&name-asc', $response->body['name']);
+      $response = $this->couchClient->find(['type'=>['$gt'=>null]],[],$fields);
+      $this->assertEquals('American Dad!', $response->body['docs'][0]['name']);
+
+      //Find for impacts
+      $response = $this->couchClient->find(['rating.average'=>['$gt'=>null]],[],[['rating.average'=>'desc'],['name'=>'desc']]);
+      $this->assertObjectHasAttribute('body', $response);
+      $this->assertArrayHasKey('docs', $response->body);
+      $this->assertArrayNotHasKey('warning', $response->body);
+      $this->assertEquals('The Wire', $response->body['docs'][0]['name']);    
     }
 }
