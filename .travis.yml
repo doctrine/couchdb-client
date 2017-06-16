@@ -10,7 +10,6 @@ php:
   - 7.0
 
 before_script:
-  - curl -X PUT localhost:5984/doctrine_test_database
   - composer install
 
 script:

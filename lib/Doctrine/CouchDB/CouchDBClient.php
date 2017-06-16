@@ -122,6 +122,7 @@ class CouchDBClient
             'path' => null,
             'logging' => false,
             'timeout' => 10,
+            'headers' => array(),
         );
         $options = array_merge($defaults, $options);
 
@@ -139,7 +140,8 @@ class CouchDBClient
             $options['ip'],
             $options['ssl'],
             $options['path'],
-            $options['timeout']
+            $options['timeout'],
+            $options['headers']
         );
         if ($options['logging'] === true) {
             $connection = new HTTP\LoggingClient($connection);
@@ -557,6 +559,24 @@ class CouchDBClient
         if ($response->status >= 400) {
             throw HTTPException::fromResponse($path, $response);
         }
+        return $response->body;
+    }
+
+    /**
+     * Retrieve specific binary attachment data.
+     *
+     * @param string $id
+     * @param string $fileName
+     * @return string
+     */
+    public function getAttachment($id, $fileName) {
+        $attachmentPath = '/' . $this->databaseName . '/' . $id . '/' . $fileName;
+        $response = $this->httpClient->request('GET', $attachmentPath, null, true);
+
+        if ($response->status != 200) {
+            throw HTTPException::fromResponse($attachmentPath, $response);
+        }
+
         return $response->body;
     }
 

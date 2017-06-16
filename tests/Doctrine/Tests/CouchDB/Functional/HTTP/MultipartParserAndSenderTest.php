@@ -52,6 +52,12 @@ class MultipartParserAndSenderTest extends \Doctrine\Tests\CouchDB\CouchDBFuncti
 
     }
 
+    public function tearDown()
+    {
+        parent::tearDown();
+        $this->createCouchDBClient()->deleteDatabase($this->getTestDatabase() . '_multipart_copy');
+    }
+
     public function testRequestThrowsHTTPExceptionOnEmptyStatus()
     {
         $this->setExpectedException(

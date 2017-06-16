@@ -21,6 +21,7 @@
 namespace Doctrine\CouchDB\Utils;
 
 use Doctrine\CouchDB\HTTP\Client;
+use Doctrine\CouchDB\HTTP\HTTPException;
 
 /**
  * Bulk updater class
@@ -81,6 +82,22 @@ class BulkUpdater
     public function execute()
     {
         return $this->httpClient->request('POST', $this->getPath(), json_encode($this->data), false, $this->requestHeaders);
+    }
+
+    public function executeByLimit($limit = 100)
+    {
+        // Do multiple POST requests if the number of docs is higher than $limit.
+        $result = [];
+        foreach (array_chunk($this->data['docs'], $limit) as $data) {
+            $full_data = $this->data;
+            $full_data['docs'] = $data;
+            $response = $this->httpClient->request('POST', $this->getPath(), json_encode($full_data), false, $this->requestHeaders);
+            if ($response->status != 201) {
+                throw HTTPException::fromResponse($response, $this->getPath());
+            }
+            $result += $response->body;
+        }
+        return $result;
     }
 
     public function getPath()
