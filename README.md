@@ -68,11 +68,10 @@ $client->deleteDatabase($client->getDatabase());
 
 //Search documents using Mango Query CouchDB v2.0.0
 
-$query = new \Doctrine\CouchDB\Mango\Query();
-
-$query->selector(['_id'=>['$gt'=>null]]);
-
-$allDocs = $client->find(query);
+$selector = ['_id'=>['$gt'=>null]];
+$options = ['limit=>1,'skip'=>1,'use_index'=>['_design/doc','index'],'sort'=>[['_id'=>'desc']]];
+$query = new \Doctrine\CouchDB\Mango\Query($selector,$options);
+$docs = $client->find($query);
 
 $query = new \Doctrine\CouchDB\Mango\MangoQuery();
 $query->select(['_id', 'name'])->where(['$and'=> [
@@ -85,7 +84,7 @@ $query->select(['_id', 'name'])->where(['$and'=> [
               ],
             ],
           ])->sort([['_id'=>'desc']])->limit(1)->skip(1)->use_index(['_design/doc','index']);
-
+$docs = $client->find($query);
 
 ```
 
