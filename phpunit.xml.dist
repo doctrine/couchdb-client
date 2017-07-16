@@ -8,8 +8,7 @@
          convertWarningsToExceptions="true"
          stopOnFailure="false"
          syntaxCheck="false"
-         bootstrap="./tests/TestInit.php"
->
+         bootstrap="./tests/TestInit.php">
     <php>
         <var name="DOCTRINE_COUCHDB_DATABASE" value="doctrine_test_database" />
         <var name="DOCTRINE_COUCHDB_CLIENT" value="Doctrine\CouchDB\HTTP\SocketClient" />
