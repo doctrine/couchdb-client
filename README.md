@@ -67,12 +67,15 @@ $client->deleteDocument($id, $rev);
 $client->deleteDatabase($client->getDatabase());
 
 //Search documents using Mango Query CouchDB v2.0.0
-$allDocs = $client->find(['_id'=>['$gt'=>null]]);
 
-$limit = 10;
-$skip = 1;
-$docs = $client->find(
-        ['$and'=> [
+$query = new \Doctrine\CouchDB\Mango\Query();
+
+$query->selector(['_id'=>['$gt'=>null]]);
+
+$allDocs = $client->find(query);
+
+$query = new \Doctrine\CouchDB\Mango\Query();
+$query->select(['_id', 'name'])->where(['$and'=> [
             [
               'name'=> [
                 '$eq'=> 'Under the Dome',
@@ -81,8 +84,8 @@ $docs = $client->find(
                 '$in'=> ['Drama','Comedy'],
               ],
             ],
-          ],
-        ],['_id', 'name'], [['_id'=>'desc']],$limit,$skip);
+          ])->sort([['_id'=>'desc']])->limit(1)->skip(1)->use_index(['_design/doc','index']);
+
 
 ```
 
