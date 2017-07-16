@@ -69,7 +69,7 @@ $client->deleteDatabase($client->getDatabase());
 //Search documents using Mango Query CouchDB v2.0.0
 
 $selector = ['_id'=>['$gt'=>null]];
-$options = ['limit=>1,'skip'=>1,'use_index'=>['_design/doc','index'],'sort'=>[['_id'=>'desc']]];
+$options = ['limit'=>1,'skip'=>1,'use_index'=>['_design/doc','index'],'sort'=>[['_id'=>'desc']]];
 $query = new \Doctrine\CouchDB\Mango\Query($selector,$options);
 $docs = $client->find($query);
 
