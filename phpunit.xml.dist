@@ -9,7 +9,7 @@
          stopOnFailure="false"
          syntaxCheck="false"
          bootstrap="./tests/TestInit.php"
-z>
+>
     <php>
         <var name="DOCTRINE_COUCHDB_DATABASE" value="doctrine_test_database" />
         <var name="DOCTRINE_COUCHDB_CLIENT" value="Doctrine\CouchDB\HTTP\SocketClient" />
