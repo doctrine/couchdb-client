@@ -74,7 +74,7 @@ $query->selector(['_id'=>['$gt'=>null]]);
 
 $allDocs = $client->find(query);
 
-$query = new \Doctrine\CouchDB\Mango\Query();
+$query = new \Doctrine\CouchDB\Mango\MangoQuery();
 $query->select(['_id', 'name'])->where(['$and'=> [
             [
               'name'=> [
