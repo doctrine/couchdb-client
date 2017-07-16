@@ -75,7 +75,7 @@ class MangoQuery implements JsonSerializable{
     }
   }
 
-  public function skip(int $skip = null){
+  public function skip($skip = null){
     if($skip !== null){
       $this->skip = $skip;
       return $this;
@@ -93,7 +93,7 @@ class MangoQuery implements JsonSerializable{
     }
   }
 
-  public function limit(int $limit = null){
+  public function limit($limit = null){
     if($limit !== null){
       $this->limit = $limit;
       return $this;
