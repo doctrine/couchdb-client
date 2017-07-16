@@ -70,7 +70,7 @@ $client->deleteDatabase($client->getDatabase());
 
 $selector = ['_id'=>['$gt'=>null]];
 $options = ['limit'=>1,'skip'=>1,'use_index'=>['_design/doc','index'],'sort'=>[['_id'=>'desc']]];
-$query = new \Doctrine\CouchDB\Mango\Query($selector,$options);
+$query = new \Doctrine\CouchDB\Mango\MangoQuery($selector,$options);
 $docs = $client->find($query);
 
 $query = new \Doctrine\CouchDB\Mango\MangoQuery();
