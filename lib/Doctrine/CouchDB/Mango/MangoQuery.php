@@ -45,7 +45,7 @@ class MangoQuery implements JsonSerializable{
   }
 
   public function selector(array $selector = null){
-    if($selector){
+    if($selector !== null){
       $this->selector = $selector;
       return $this;
     }else{
@@ -58,7 +58,7 @@ class MangoQuery implements JsonSerializable{
   }
 
   public function fields(array $fields = null){
-    if($fields){
+    if($fields !== null){
       $this->fields = $fields;
       return $this;
     }else{
@@ -67,7 +67,7 @@ class MangoQuery implements JsonSerializable{
   }
 
   public function sort(array $sort = null){
-    if($sort){
+    if($sort !== null){
       $this->sort = $sort;
       return $this;
     }else{
@@ -76,7 +76,7 @@ class MangoQuery implements JsonSerializable{
   }
 
   public function skip(int $skip = null){
-    if($skip){
+    if($skip !== null){
       $this->skip = $skip;
       return $this;
     }else{
@@ -85,7 +85,7 @@ class MangoQuery implements JsonSerializable{
   }
 
   public function use_index(array $use_index = null){
-    if($use_index){
+    if($use_index !== null){
       $this->use_index = $use_index;
       return $this;
     }else{
@@ -94,7 +94,7 @@ class MangoQuery implements JsonSerializable{
   }
 
   public function limit(int $limit = null){
-    if($limit){
+    if($limit !== null){
       $this->limit = $limit;
       return $this;
     }else{
