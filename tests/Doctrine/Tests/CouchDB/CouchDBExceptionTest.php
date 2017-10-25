@@ -3,11 +3,12 @@
 namespace Doctrine\Tests\CouchDB;
 
 use Doctrine\CouchDB\CouchDBException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Doctrine\CouchDB\CouchDBException
  */
-class CouchDBExceptionTest extends \PHPUnit_Framework_TestCase
+class CouchDBExceptionTest extends TestCase
 {
     /**
      * @dataProvider staticFactoryDataProvider
