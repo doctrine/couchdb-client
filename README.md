@@ -129,6 +129,7 @@ $result = $query->execute();
 foreach ($result as $row) {
     echo 'Author ', $row['key'], ' has written ', $row['value'], ' articles', "\n";
 }
+
 // Author Alice has written 1 articles
 // Author Bob has written 2 articles
 ```
