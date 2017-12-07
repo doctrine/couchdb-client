@@ -1,6 +1,6 @@
-# Doctrine CouchDB Client
+# Doctrine CouchDB Client (PhpFastCache Fork) *
 
-[![Build Status](https://travis-ci.org/doctrine/couchdb-client.png?branch=master)](https://travis-ci.org/doctrine/couchdb-client)
+[![Build Status](https://travis-ci.org/PHPSocialNetwork/couchdb-client.png?branch=master)](https://travis-ci.org/PHPSocialNetwork/couchdb-client)
 
 Simple API that wraps around CouchDBs HTTP API.
 
@@ -25,7 +25,7 @@ With Composer:
 
     {
         "require": {
-            "doctrine/couchdb": "@dev"
+            "PHPSocialNetwork/couchdb": "@dev"
         }
     }
 
@@ -132,3 +132,5 @@ foreach ($result as $row) {
 // Author Alice has written 1 articles
 // Author Bob has written 2 articles
 ```
+
+\* Due to the fact that the authors seem to have abandoned the main library, we decided to fork and maintain it for the PhpFastCache needs.
