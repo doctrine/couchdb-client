@@ -1,4 +1,4 @@
-# Doctrine CouchDB v2.0.0 Client
+# Doctrine CouchDB v2.x Client
 
 [![Build Status](https://travis-ci.org/doctrine/couchdb-client.png?branch=master)](https://travis-ci.org/doctrine/couchdb-client)
 [![StyleCI](https://styleci.io/repos/90809440/shield?style=flat)](https://styleci.io/repos/90809440)
