@@ -38,12 +38,12 @@ class Result implements \IteratorAggregate, \Countable, \ArrayAccess
 
     public function offsetSet($offset, $value)
     {
-        throw new \BadMethodCallException("Result is immutable and cannot be changed.");
+        throw new \BadMethodCallException('Result is immutable and cannot be changed.');
     }
 
     public function offsetUnset($offset)
     {
-        throw new \BadMethodCallException("Result is immutable and cannot be changed.");
+        throw new \BadMethodCallException('Result is immutable and cannot be changed.');
     }
 
     public function toArray()

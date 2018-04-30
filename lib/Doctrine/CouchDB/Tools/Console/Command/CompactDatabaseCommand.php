@@ -2,11 +2,9 @@
 
 namespace Doctrine\CouchDB\Tools\Console\Command;
 
-use Symfony\Component\Console\Input\InputArgument,
-    Symfony\Component\Console\Input\InputOption,
-    Symfony\Component\Console\Input\InputInterface,
-    Symfony\Component\Console\Output\OutputInterface,
-    Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class CompactDatabaseCommand extends Command
 {
@@ -22,6 +20,6 @@ class CompactDatabaseCommand extends Command
         /* @var $couchClient \Doctrine\CouchDB\CouchDBClient */
 
         $data = $couchClient->compactDatabase();
-        $output->writeln("Database compact started.");
+        $output->writeln('Database compact started.');
     }
 }

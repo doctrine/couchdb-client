@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Doctrine\CouchDB;
 
 use Doctrine\CouchDB\HTTP\Client;
@@ -14,14 +13,16 @@ use Doctrine\CouchDB\HTTP\HTTPException;
  * binary and base64 data of everything if possible to ease the API.
  *
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
+ *
  * @link        www.doctrine-project.com
  * @since       1.0
+ *
  * @author      Benjamin Eberlei <kontakt@beberlei.de>
  */
 class Attachment
 {
     /**
-     * Content-Type of the Attachment
+     * Content-Type of the Attachment.
      *
      * If this is false on putting a new attachment into the database the
      * generic "application/octet-stream" type will be used.
@@ -96,6 +97,7 @@ class Attachment
         if (!$this->stub && !is_int($this->length)) {
             $this->length = strlen($this->data);
         }
+
         return $this->length;
     }
 
@@ -122,7 +124,7 @@ class Attachment
     }
 
     /**
-     * Lazy Load Data from CouchDB if necessary
+     * Lazy Load Data from CouchDB if necessary.
      *
      * @return void
      */
@@ -165,13 +167,14 @@ class Attachment
     public function toArray()
     {
         if ($this->stub) {
-            $json = array('stub' => true);
+            $json = ['stub' => true];
         } else {
-            $json = array('data' => $this->getBase64EncodedData());
+            $json = ['data' => $this->getBase64EncodedData()];
             if ($this->contentType) {
                 $json['content_type'] = $this->contentType;
             }
         }
+
         return $json;
     }
 
@@ -179,8 +182,8 @@ class Attachment
      * @param string $binaryData
      * @param string $base64Data
      * @param string $contentType
-     * @param int $length
-     * @param int $revPos
+     * @param int    $length
+     * @param int    $revPos
      * @param Client $httpClient
      * @param string $path
      */
@@ -189,7 +192,7 @@ class Attachment
         if ($binaryData || $base64Data) {
             $this->binaryData = $binaryData;
             $this->data = $base64Data;
-            $this->stub =  false;
+            $this->stub = false;
         } else {
             $this->stub = true;
         }
@@ -206,10 +209,11 @@ class Attachment
      * WARNING: Changes to the file handle after calling this method will *NOT* be recognized anymore.
      *
      * @param string|resource $data
-     * @param string $contentType
+     * @param string          $contentType
+     *
      * @return Attachment
      */
-    static public function createFromBinaryData($data, $contentType = false)
+    public static function createFromBinaryData($data, $contentType = false)
     {
         if (\is_resource($data)) {
             $data = \stream_get_contents($data);
@@ -223,10 +227,11 @@ class Attachment
      *
      * @param string $data
      * @param string $contentType
-     * @param int $revpos
+     * @param int    $revpos
+     *
      * @return Attachment
      */
-    static public function createFromBase64Data($data, $contentType = false, $revpos = false)
+    public static function createFromBase64Data($data, $contentType = false, $revpos = false)
     {
         return new self(\base64_decode($data), $data, $contentType, false, $revpos);
     }
@@ -235,13 +240,14 @@ class Attachment
      * Create a stub attachment that has lazy loading capabilities.
      *
      * @param string $contentType
-     * @param int $length
-     * @param int $revPos
+     * @param int    $length
+     * @param int    $revPos
      * @param Client $httpClient
      * @param string $path
+     *
      * @return Attachment
      */
-    static public function createStub($contentType, $length, $revPos, Client $httpClient, $path)
+    public static function createStub($contentType, $length, $revPos, Client $httpClient, $path)
     {
         return new self(null, null, $contentType, $length, $revPos, $httpClient, $path);
     }

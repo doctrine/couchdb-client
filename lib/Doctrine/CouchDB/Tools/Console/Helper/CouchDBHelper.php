@@ -2,16 +2,18 @@
 
 namespace Doctrine\CouchDB\Tools\Console\Helper;
 
-use Symfony\Component\Console\Helper\Helper;
 use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\ODM\CouchDB\DocumentManager;
+use Symfony\Component\Console\Helper\Helper;
 
 /**
  * Doctrine CLI Connection Helper.
  *
  * @license http://www.opensource.org/licenses/mit-license.php MIT
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
+ *
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
  */
 class CouchDBHelper extends Helper
@@ -24,9 +26,9 @@ class CouchDBHelper extends Helper
     protected $dm;
 
     /**
-     * Constructor
-     * 
-     * @param CouchDBClient $couchDBClient
+     * Constructor.
+     *
+     * @param CouchDBClient   $couchDBClient
      * @param DocumentManager $dm
      */
     public function __construct(CouchDBClient $couchDBClient = null, DocumentManager $dm = null)
@@ -40,7 +42,7 @@ class CouchDBHelper extends Helper
     }
 
     /**
-     * Retrieves Doctrine ODM CouchDB Manager
+     * Retrieves Doctrine ODM CouchDB Manager.
      *
      * @return \Doctrine\ODM\CouchDB\DocumentManager
      */

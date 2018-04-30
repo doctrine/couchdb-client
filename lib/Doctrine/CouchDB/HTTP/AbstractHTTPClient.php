@@ -6,21 +6,23 @@
 namespace Doctrine\CouchDB\HTTP;
 
 /**
- * Basic couch DB connection handling class
+ * Basic couch DB connection handling class.
  *
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
+ *
  * @link        www.doctrine-project.com
  * @since       1.0
+ *
  * @author      Kore Nordmann <kore@arbitracker.org>
  */
 abstract class AbstractHTTPClient implements Client
 {
     /**
-     * CouchDB connection options
+     * CouchDB connection options.
      *
      * @var array
      */
-    protected $options = array(
+    protected $options = [
         'host'       => 'localhost',
         'port'       => 5984,
         'ip'         => '127.0.0.1',
@@ -30,32 +32,37 @@ abstract class AbstractHTTPClient implements Client
         'username'   => null,
         'password'   => null,
         'path'       => null,
-    );
+        'headers'    => [],
+    ];
 
     /**
-     * Construct a CouchDB connection
+     * Construct a CouchDB connection.
      *
      * Construct a CouchDB connection from basic connection parameters for one
      * given database.
      *
      * @param string $host
-     * @param int $port
+     * @param int    $port
      * @param string $username
      * @param string $password
      * @param string $ip
-     * @param bool $ssl
+     * @param bool   $ssl
      * @param string $path
+     * @param int    $timeout
+     * @param array  $headers
+     *
      * @return \Doctrine\CouchDB\HTTP\AbstractHTTPClient
      */
-    public function __construct($host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null , $ssl = false, $path = null, $timeout = 10)
+    public function __construct($host = 'localhost', $port = 5984, $username = null, $password = null, $ip = null, $ssl = false, $path = null, $timeout = 10, array $headers = [])
     {
-        $this->options['host']     = (string) $host;
-        $this->options['port']     = (int) $port;
-        $this->options['ssl']      = $ssl;
+        $this->options['host'] = (string) $host;
+        $this->options['port'] = (int) $port;
+        $this->options['ssl'] = $ssl;
         $this->options['username'] = $username;
         $this->options['password'] = $password;
-        $this->options['path']     = $path;
-        $this->options['timeout']  = (float) $timeout;
+        $this->options['path'] = $path;
+        $this->options['timeout'] = (float) $timeout;
+        $this->options['headers'] = $headers;
 
         if ($ip === null) {
             $this->options['ip'] = gethostbyname($this->options['host']);
@@ -65,34 +72,35 @@ abstract class AbstractHTTPClient implements Client
     }
 
     /**
-     * Set option value
+     * Set option value.
      *
      * Set the value for an connection option. Throws an
      * InvalidArgumentException for unknown options.
      *
      * @param string $option
-     * @param mixed $value
+     * @param mixed  $value
      *
      * @throws \InvalidArgumentException
      *
      * @return void
      */
-    public function setOption( $option, $value )
+    public function setOption($option, $value)
     {
-        switch ( $option ) {
+        switch ($option) {
         case 'keep-alive':
         case 'ssl':
             $this->options[$option] = (bool) $value;
             break;
 
         case 'http-log':
+        case 'headers':
         case 'password':
         case 'username':
             $this->options[$option] = $value;
             break;
 
         default:
-            throw new \InvalidArgumentException( "Unknown option $option." );
+            throw new \InvalidArgumentException("Unknown option $option.");
         }
     }
 
@@ -106,4 +114,3 @@ abstract class AbstractHTTPClient implements Client
         return $this->options;
     }
 }
-

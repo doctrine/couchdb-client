@@ -3,19 +3,21 @@
 namespace Doctrine\CouchDB;
 
 use Doctrine\CouchDB\HTTP\Client;
-use Doctrine\CouchDB\HTTP\Response;
 use Doctrine\CouchDB\HTTP\HTTPException;
 use Doctrine\CouchDB\HTTP\MultipartParserAndSender;
+use Doctrine\CouchDB\HTTP\Response;
 use Doctrine\CouchDB\HTTP\StreamClient;
 use Doctrine\CouchDB\Utils\BulkUpdater;
 use Doctrine\CouchDB\View\DesignDocument;
 
 /**
- * CouchDB client class
+ * CouchDB client class.
  *
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
+ *
  * @link        www.doctrine-project.com
  * @since       1.0
+ *
  * @author      Benjamin Eberlei <kontakt@beberlei.de>
  * @author      Lukas Kahwe Smith <smith@pooteeweet.org>
  */
@@ -25,7 +27,7 @@ class CouchDBClient
     const COLLATION_END = "\xEF\xBF\xB0";
 
     /**
-     * Name of the CouchDB database
+     * Name of the CouchDB database.
      *
      * @string
      */
@@ -36,34 +38,36 @@ class CouchDBClient
      *
      * @var Client
      */
-    private $httpClient;
+    protected $httpClient;
 
     /**
-     * CouchDB Version
+     * CouchDB Version.
      *
      * @var string
      */
-    private $version = null;
+    protected $version = null;
 
-    static private $clients = array(
+    protected static $clients = [
         'socket' => 'Doctrine\CouchDB\HTTP\SocketClient',
         'stream' => 'Doctrine\CouchDB\HTTP\StreamClient',
-    );
+    ];
 
     /**
-     * Factory method for CouchDBClients
+     * Factory method for CouchDBClients.
      *
      * @param array $options
-     * @return CouchDBClient
+     *
      * @throws \InvalidArgumentException
+     *
+     * @return CouchDBClient
      */
-    static public function create(array $options)
+    public static function create(array $options)
     {
         if (isset($options['url'])) {
             $urlParts = parse_url($options['url']);
 
             foreach ($urlParts as $part => $value) {
-                switch($part) {
+                switch ($part) {
                     case 'host':
                     case 'user':
                     case 'port':
@@ -94,23 +98,24 @@ class CouchDBClient
             throw new \InvalidArgumentException("'dbname' is a required option to create a CouchDBClient");
         }
 
-        $defaults = array(
-            'type' => 'socket',
-            'host' => 'localhost',
-            'port' => 5984,
-            'user' => null,
+        $defaults = [
+            'type'     => 'socket',
+            'host'     => 'localhost',
+            'port'     => 5984,
+            'user'     => null,
             'password' => null,
-            'ip' => null,
-            'ssl' => false,
-            'path' => null,
-            'logging' => false,
-            'timeout' => 10,
-        );
+            'ip'       => null,
+            'ssl'      => false,
+            'path'     => null,
+            'logging'  => false,
+            'timeout'  => 10,
+            'headers'  => [],
+        ];
         $options = array_merge($defaults, $options);
 
         if (!isset(self::$clients[$options['type']])) {
             throw new \InvalidArgumentException(sprintf('There is no client implementation registered for %s, valid options are: %s',
-                $options['type'], implode(", ", array_keys(self::$clients))
+                $options['type'], implode(', ', array_keys(self::$clients))
             ));
         }
         $connectionClass = self::$clients[$options['type']];
@@ -122,11 +127,13 @@ class CouchDBClient
             $options['ip'],
             $options['ssl'],
             $options['path'],
-            $options['timeout']
+            $options['timeout'],
+            $options['headers']
         );
         if ($options['logging'] === true) {
             $connection = new HTTP\LoggingClient($connection);
         }
+
         return new static($connection, $options['dbname']);
     }
 
@@ -161,31 +168,36 @@ class CouchDBClient
     /**
      * Let CouchDB generate an array of UUIDs.
      *
-     * @param  int $count
-     * @return array
+     * @param int $count
+     *
      * @throws CouchDBException
+     *
+     * @return array
      */
     public function getUuids($count = 1)
     {
-        $count = (int)$count;
-        $response = $this->httpClient->request('GET', '/_uuids?count=' . $count);
+        $count = (int) $count;
+        $response = $this->httpClient->request('GET', '/_uuids?count='.$count);
 
         if ($response->status != 200) {
-            throw new CouchDBException("Could not retrieve UUIDs from CouchDB.");
+            throw new CouchDBException('Could not retrieve UUIDs from CouchDB.');
         }
 
         return $response->body['uuids'];
     }
 
+
     /**
      * Find a document by ID and return the HTTP response.
      *
      * @param string $id
+     *
      * @return HTTP\Response
      */
     public function findDocument($id)
     {
-        $documentPath = '/' . $this->databaseName . '/' . urlencode($id);
+        $documentPath = '/'.$this->databaseName.'/'.urlencode($id);
+
         return $this->httpClient->request('GET', $documentPath);
     }
 
@@ -197,15 +209,16 @@ class CouchDBClient
      * leaf revisions are fetched.
      *
      * @param string $docId
-     * @param mixed $revisions
+     * @param mixed  $revisions
+     *
      * @return HTTP\Response
      */
     public function findRevisions($docId, $revisions = null)
     {
-        $path = '/' . $this->databaseName . '/' . urlencode($docId);
+        $path = '/'.$this->databaseName.'/'.urlencode($docId);
         if (is_array($revisions)) {
             // Fetch documents of only the specified leaf revisions.
-            $path .= '?open_revs=' . json_encode($revisions);
+            $path .= '?open_revs='.json_encode($revisions);
         } else {
             // Fetch documents of all leaf revisions.
             $path .= '?open_revs=all';
@@ -217,7 +230,7 @@ class CouchDBClient
             $path,
             null,
             false,
-            array('Accept' => 'application/json')
+            ['Accept' => 'application/json']
         );
     }
 
@@ -225,53 +238,56 @@ class CouchDBClient
      * Find many documents by passing their ids and return the HTTP response.
      *
      * @param array $ids
-     * @param null $limit
-     * @param null $offset
+     * @param null  $limit
+     * @param null  $offset
+     *
      * @return HTTP\Response
      */
     public function findDocuments(array $ids, $limit = null, $offset = null)
     {
-        $allDocsPath = '/' . $this->databaseName . '/_all_docs?include_docs=true';
+        $allDocsPath = '/'.$this->databaseName.'/_all_docs?include_docs=true';
         if ($limit) {
-            $allDocsPath .= '&limit=' . (int)$limit;
+            $allDocsPath .= '&limit='.(int) $limit;
         }
         if ($offset) {
-            $allDocsPath .= '&skip=' . (int)$offset;
+            $allDocsPath .= '&skip='.(int) $offset;
         }
 
         return $this->httpClient->request('POST', $allDocsPath, json_encode(
-            array('keys' => array_values($ids)))
+            ['keys' => array_values($ids)])
         );
     }
 
     /**
-     * Get all documents
+     * Get all documents.
      *
-     * @param int|null $limit
+     * @param int|null    $limit
      * @param string|null $startKey
      * @param string|null $endKey
-     * @param int|null $skip
-     * @param bool $descending
+     * @param int|null    $skip
+     * @param bool        $descending
+     *
      * @return HTTP\Response
      */
     public function allDocs($limit = null, $startKey = null, $endKey = null, $skip = null, $descending = false)
     {
-        $allDocsPath = '/' . $this->databaseName . '/_all_docs?include_docs=true';
+        $allDocsPath = '/'.$this->databaseName.'/_all_docs?include_docs=true';
         if ($limit) {
-            $allDocsPath .= '&limit=' . (int)$limit;
+            $allDocsPath .= '&limit='.(int) $limit;
         }
         if ($startKey) {
-            $allDocsPath .= '&startkey="' . (string)$startKey.'"';
+            $allDocsPath .= '&startkey="'.(string) $startKey.'"';
         }
         if (!is_null($endKey)) {
-            $allDocsPath .= '&endkey="' . (string)$endKey.'"';
+            $allDocsPath .= '&endkey="'.(string) $endKey.'"';
         }
-        if (!is_null($skip) && (int)$skip > 0) {
-            $allDocsPath .= '&skip=' . (int)$skip;
+        if (!is_null($skip) && (int) $skip > 0) {
+            $allDocsPath .= '&skip='.(int) $skip;
         }
-        if (!is_null($descending) && (bool)$descending === true) {
+        if (!is_null($descending) && (bool) $descending === true) {
             $allDocsPath .= '&descending=true';
         }
+
         return $this->httpClient->request('GET', $allDocsPath);
     }
 
@@ -279,6 +295,7 @@ class CouchDBClient
      * Get the current version of CouchDB.
      *
      * @throws HTTPException
+     *
      * @return string
      */
     public function getVersion()
@@ -291,13 +308,15 @@ class CouchDBClient
 
             $this->version = $response->body['version'];
         }
+
         return $this->version;
     }
 
     /**
-     * Get all databases
+     * Get all databases.
      *
      * @throws HTTPException
+     *
      * @return array
      */
     public function getAllDatabases()
@@ -311,50 +330,56 @@ class CouchDBClient
     }
 
     /**
-     * Create a new database
+     * Create a new database.
+     *
+     * @param string $name
      *
      * @throws HTTPException
-     * @param string $name
+     *
      * @return void
      */
     public function createDatabase($name)
     {
-        $response = $this->httpClient->request('PUT', '/' . urlencode($name));
+        $response = $this->httpClient->request('PUT', '/'.urlencode($name));
 
         if ($response->status != 201) {
-            throw HTTPException::fromResponse('/' . urlencode($name), $response);
+            throw HTTPException::fromResponse('/'.urlencode($name), $response);
         }
     }
 
     /**
-     * Drop a database
+     * Drop a database.
+     *
+     * @param string $name
      *
      * @throws HTTPException
-     * @param string $name
+     *
      * @return void
      */
     public function deleteDatabase($name)
     {
-        $response = $this->httpClient->request('DELETE', '/' . urlencode($name));
+        $response = $this->httpClient->request('DELETE', '/'.urlencode($name));
 
         if ($response->status != 200 && $response->status != 404) {
-            throw HTTPException::fromResponse('/' . urlencode($name), $response);
+            throw HTTPException::fromResponse('/'.urlencode($name), $response);
         }
     }
 
     /**
      * Get Information about a database.
      *
-     * @param  string $name
-     * @return array
+     * @param string $name
+     *
      * @throws HTTPException
+     *
+     * @return array
      */
     public function getDatabaseInfo($name = null)
     {
-        $response = $this->httpClient->request('GET', '/' . ($name ? urlencode($name) : $this->databaseName));
+        $response = $this->httpClient->request('GET', '/'.($name ? urlencode($name) : $this->databaseName));
 
         if ($response->status != 200) {
-            throw HTTPException::fromResponse('/' . urlencode($name), $response);
+            throw HTTPException::fromResponse('/'.urlencode($name), $response);
         }
 
         return $response->body;
@@ -364,18 +389,19 @@ class CouchDBClient
      * Get changes.
      *
      * @param array $params
-     * @return array
+     *
      * @throws HTTPException
+     *
+     * @return array
      */
-    public function getChanges(array $params = array())
+    public function getChanges(array $params = [])
     {
-        $path = '/' . $this->databaseName . '/_changes';
+        $path = '/'.$this->databaseName.'/_changes';
 
-        $method = ((!isset($params['doc_ids']) || $params['doc_ids'] == null) ? "GET" : "POST");
+        $method = ((!isset($params['doc_ids']) || $params['doc_ids'] == null) ? 'GET' : 'POST');
         $response = '';
 
-        if ($method == "GET") {
-
+        if ($method == 'GET') {
             foreach ($params as $key => $value) {
                 if (isset($params[$key]) === true && is_bool($value) === true) {
                     $params[$key] = ($value) ? 'true' : 'false';
@@ -386,7 +412,6 @@ class CouchDBClient
                 $path = $path.'?'.$query;
             }
             $response = $this->httpClient->request('GET', $path);
-
         } else {
             $path .= '?filter=_doc_ids';
             $response = $this->httpClient->request('POST', $path, json_encode($params));
@@ -411,30 +436,34 @@ class CouchDBClient
     /**
      * Execute a POST request against CouchDB inserting a new document, leaving the server to generate a uuid.
      *
-     * @param  array $data
-     * @return array<id, rev>
+     * @param array $data
+     *
      * @throws HTTPException
+     *
+     * @return array<id, rev>
      */
     public function postDocument(array $data)
     {
-        $path = '/' . $this->databaseName;
+        $path = '/'.$this->databaseName;
         $response = $this->httpClient->request('POST', $path, json_encode($data));
 
         if ($response->status != 201) {
             throw HTTPException::fromResponse($path, $response);
         }
 
-        return array($response->body['id'], $response->body['rev']);
+        return [$response->body['id'], $response->body['rev']];
     }
 
     /**
      * Execute a PUT request against CouchDB inserting or updating a document.
      *
-     * @param array $data
-     * @param string $id
+     * @param array       $data
+     * @param string      $id
      * @param string|null $rev
-     * @return array<id, rev>
+     *
      * @throws HTTPException
+     *
+     * @return array<id, rev>
      */
     public function putDocument($data, $id, $rev = null)
     {
@@ -443,27 +472,29 @@ class CouchDBClient
             $data['_rev'] = $rev;
         }
 
-        $path = '/' . $this->databaseName . '/' . urlencode($id);
+        $path = '/'.$this->databaseName.'/'.urlencode($id);
         $response = $this->httpClient->request('PUT', $path, json_encode($data));
 
         if ($response->status != 201) {
             throw HTTPException::fromResponse($path, $response);
         }
 
-        return array($response->body['id'], $response->body['rev']);
+        return [$response->body['id'], $response->body['rev']];
     }
 
     /**
      * Delete a document.
      *
-     * @param  string $id
-     * @param  string $rev
-     * @return void
+     * @param string $id
+     * @param string $rev
+     *
      * @throws HTTPException
+     *
+     * @return void
      */
     public function deleteDocument($id, $rev)
     {
-        $path = '/' . $this->databaseName . '/' . urlencode($id) . '?rev=' . $rev;
+        $path = '/'.$this->databaseName.'/'.urlencode($id).'?rev='.$rev;
         $response = $this->httpClient->request('DELETE', $path);
 
         if ($response->status != 200) {
@@ -472,9 +503,10 @@ class CouchDBClient
     }
 
     /**
-     * @param string $designDocName
-     * @param string $viewName
+     * @param string         $designDocName
+     * @param string         $viewName
      * @param DesignDocument $designDoc
+     *
      * @return View\Query
      */
     public function createViewQuery($designDocName, $viewName, DesignDocument $designDoc = null)
@@ -485,17 +517,18 @@ class CouchDBClient
     /**
      * Create or update a design document from the given in memory definition.
      *
-     * @param string $designDocName
+     * @param string         $designDocName
      * @param DesignDocument $designDoc
+     *
      * @return HTTP\Response
      */
     public function createDesignDocument($designDocName, DesignDocument $designDoc)
     {
-        $data        = $designDoc->getData();
-        $data['_id'] = '_design/' . $designDocName;
+        $data = $designDoc->getData();
+        $data['_id'] = '_design/'.$designDocName;
 
-        $documentPath = '/' . $this->databaseName . '/' . $data['_id'];
-        $response     = $this->httpClient->request( 'GET', $documentPath );
+        $documentPath = '/'.$this->databaseName.'/'.$data['_id'];
+        $response = $this->httpClient->request('GET', $documentPath);
 
         if ($response->status == 200) {
             $docData = $response->body;
@@ -503,19 +536,20 @@ class CouchDBClient
         }
 
         return $this->httpClient->request(
-            "PUT",
-            sprintf("/%s/_design/%s", $this->databaseName, $designDocName),
+            'PUT',
+            sprintf('/%s/_design/%s', $this->databaseName, $designDocName),
             json_encode($data)
         );
     }
 
     /**
-     * GET /db/_compact
+     * GET /db/_compact.
      *
      * Return array of data about compaction status.
      *
-     * @return array
      * @throws HTTPException
+     *
+     * @return array
      */
     public function getCompactInfo()
     {
@@ -524,14 +558,16 @@ class CouchDBClient
         if ($response->status >= 400) {
             throw HTTPException::fromResponse($path, $response);
         }
+
         return $response->body;
     }
 
     /**
-     * POST /db/_compact
+     * POST /db/_compact.
+     *
+     * @throws HTTPException
      *
      * @return array
-     * @throws HTTPException
      */
     public function compactDatabase()
     {
@@ -540,15 +576,18 @@ class CouchDBClient
         if ($response->status >= 400) {
             throw HTTPException::fromResponse($path, $response);
         }
+
         return $response->body;
     }
 
     /**
-     * POST /db/_compact/designDoc
+     * POST /db/_compact/designDoc.
      *
      * @param string $designDoc
-     * @return array
+     *
      * @throws HTTPException
+     *
+     * @return array
      */
     public function compactView($designDoc)
     {
@@ -557,14 +596,16 @@ class CouchDBClient
         if ($response->status >= 400) {
             throw HTTPException::fromResponse($path, $response);
         }
+
         return $response->body;
     }
 
     /**
-     * POST /db/_view_cleanup
+     * POST /db/_view_cleanup.
+     *
+     * @throws HTTPException
      *
      * @return array
-     * @throws HTTPException
      */
     public function viewCleanup()
     {
@@ -573,30 +614,33 @@ class CouchDBClient
         if ($response->status >= 400) {
             throw HTTPException::fromResponse($path, $response);
         }
+
         return $response->body;
     }
 
     /**
-     * POST /db/_replicate
+     * POST /db/_replicate.
      *
-     * @param string $source
-     * @param string $target
-     * @param bool|null $cancel
-     * @param bool|null $continuous
+     * @param string      $source
+     * @param string      $target
+     * @param bool|null   $cancel
+     * @param bool|null   $continuous
      * @param string|null $filter
-     * @param array|null $ids
+     * @param array|null  $ids
      * @param string|null $proxy
-     * @return array
+     *
      * @throws HTTPException
+     *
+     * @return array
      */
     public function replicate($source, $target, $cancel = null, $continuous = null, $filter = null, array $ids = null, $proxy = null)
     {
-        $params = array('target' => $target, 'source' => $source);
+        $params = ['target' => $target, 'source' => $source];
         if ($cancel !== null) {
-            $params['cancel'] = (bool)$cancel;
+            $params['cancel'] = (bool) $cancel;
         }
         if ($continuous !== null) {
-            $params['continuous'] = (bool)$continuous;
+            $params['continuous'] = (bool) $continuous;
         }
         if ($filter !== null) {
             $params['filter'] = $filter;
@@ -612,14 +656,16 @@ class CouchDBClient
         if ($response->status >= 400) {
             throw HTTPException::fromResponse($path, $response);
         }
+
         return $response->body;
     }
 
     /**
-     * GET /_active_tasks
+     * GET /_active_tasks.
+     *
+     * @throws HTTPException
      *
      * @return array
-     * @throws HTTPException
      */
     public function getActiveTasks()
     {
@@ -627,23 +673,27 @@ class CouchDBClient
         if ($response->status != 200) {
             throw HTTPException::fromResponse('/_active_tasks', $response);
         }
+
         return $response->body;
     }
 
     /**
      * Get revision difference.
      *
-     * @param  array $data
-     * @return array
+     * @param array $data
+     *
      * @throws HTTPException
+     *
+     * @return array
      */
     public function getRevisionDifference($data)
     {
-        $path = '/' . $this->databaseName . '/_revs_diff';
+        $path = '/'.$this->databaseName.'/_revs_diff';
         $response = $this->httpClient->request('POST', $path, json_encode($data));
         if ($response->status != 200) {
             throw HTTPException::fromResponse($path, $response);
         }
+
         return $response->body;
     }
 
@@ -651,30 +701,32 @@ class CouchDBClient
      * Transfer missing revisions to the target. The Content-Type of response
      * from the source should be multipart/mixed.
      *
-     * @param string $docId
-     * @param array $missingRevs
+     * @param string        $docId
+     * @param array         $missingRevs
      * @param CouchDBClient $target
-     * @return array|HTTP\ErrorResponse|string
+     *
      * @throws HTTPException
+     *
+     * @return array|HTTP\ErrorResponse|string
      */
     public function transferChangedDocuments($docId, $missingRevs, CouchDBClient $target)
     {
-        $path = '/' . $this->getDatabase() . '/' . $docId;
-        $params = array('revs' => true, 'latest' => true, 'open_revs' => json_encode($missingRevs));
+        $path = '/'.$this->getDatabase().'/'.$docId;
+        $params = ['revs' => true, 'latest' => true, 'open_revs' => json_encode($missingRevs)];
         $query = http_build_query($params);
-        $path .= '?' . $query;
+        $path .= '?'.$query;
 
-        $targetPath = '/' . $target->getDatabase() . '/' . $docId . '?new_edits=false';
+        $targetPath = '/'.$target->getDatabase().'/'.$docId.'?new_edits=false';
 
         $mutltipartHandler = new MultipartParserAndSender($this->getHttpClient(), $target->getHttpClient());
+
         return $mutltipartHandler->request(
             'GET',
             $path,
             $targetPath,
             null,
-            array('Accept' => 'multipart/mixed')
+            ['Accept' => 'multipart/mixed']
         );
-
     }
 
     /**
@@ -686,17 +738,19 @@ class CouchDBClient
      * as they occur. Filtered changes feed is not supported by this method.
      *
      * @param array $params
-     * @param bool $raw
-     * @return resource
+     * @param bool  $raw
+     *
      * @throws HTTPException
+     *
+     * @return resource
      */
-    public function getChangesAsStream(array $params = array())
+    public function getChangesAsStream(array $params = [])
     {
         // Set feed to continuous.
         if (!isset($params['feed']) || $params['feed'] != 'continuous') {
             $params['feed'] = 'continuous';
         }
-        $path = '/' . $this->databaseName . '/_changes';
+        $path = '/'.$this->databaseName.'/_changes';
         $connectionOptions = $this->getHttpClient()->getOptions();
         $streamClient = new StreamClient(
             $connectionOptions['host'],
@@ -715,7 +769,7 @@ class CouchDBClient
         }
         if (count($params) > 0) {
             $query = http_build_query($params);
-            $path = $path . '?' . $query;
+            $path = $path.'?'.$query;
         }
         $stream = $streamClient->getConnection('GET', $path, null);
 
@@ -736,22 +790,23 @@ class CouchDBClient
         }
         // Everything seems okay. Return the connection resource.
         return $stream;
-
     }
 
     /**
      * Commit any recent changes to the specified database to disk.
      *
-     * @return array
      * @throws HTTPException
+     *
+     * @return array
      */
     public function ensureFullCommit()
     {
-        $path = '/' . $this->databaseName . '/_ensure_full_commit';
+        $path = '/'.$this->databaseName.'/_ensure_full_commit';
         $response = $this->httpClient->request('POST', $path);
         if ($response->status != 201) {
             throw HTTPException::fromResponse($path, $response);
         }
+
         return $response->body;
     }
 }

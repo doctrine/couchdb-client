@@ -14,7 +14,7 @@ class CouchDBClientTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateClient()
     {
-        $client = CouchDBClient::create(array('dbname' => 'test'));
+        $client = CouchDBClient::create(['dbname' => 'test']);
         $this->assertEquals('test', $client->getDatabase());
         $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Client', $client->getHttpClient());
 
@@ -25,49 +25,63 @@ class CouchDBClientTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateClientFromUrl()
     {
-        $client = CouchDBClient::create(array('url' => 'https://foo:bar@localhost:5555/baz'));
+        $client = CouchDBClient::create(['url' => 'https://foo:bar@localhost:5555/baz']);
 
         $this->assertEquals('baz', $client->getDatabase());
         $this->assertEquals(
-            array(
-                'host' => 'localhost',
-                'port' => 5555,
-                'ip' => '127.0.0.1',
-                'username' => 'foo',
-                'password' => 'bar',
-                'ssl' => true,
-                'timeout' => 10,
+            [
+                'host'       => 'localhost',
+                'port'       => 5555,
+                'ip'         => '127.0.0.1',
+                'username'   => 'foo',
+                'password'   => 'bar',
+                'ssl'        => true,
+                'timeout'    => 10,
                 'keep-alive' => true,
-                'path' => null,
-            ),
+                'path'       => null,
+                'headers'    => [],
+            ],
             $client->getHttpClient()->getOptions()
         );
     }
 
     public function testCreateClientFromUrlWithPath()
     {
-        $client = CouchDBClient::create(array('url' => 'https://foo:bar@localhost:5555/baz/qux/norf'));
+        $client = CouchDBClient::create(['url' => 'https://foo:bar@localhost:5555/baz/qux/norf']);
 
         $this->assertEquals('norf', $client->getDatabase());
         $this->assertEquals(
-            array(
-                'host' => 'localhost',
-                'port' => 5555,
-                'ip' => '127.0.0.1',
-                'username' => 'foo',
-                'password' => 'bar',
-                'ssl' => true,
-                'timeout' => 10,
+            [
+                'host'       => 'localhost',
+                'port'       => 5555,
+                'ip'         => '127.0.0.1',
+                'username'   => 'foo',
+                'password'   => 'bar',
+                'ssl'        => true,
+                'timeout'    => 10,
                 'keep-alive' => true,
-                'path' => 'baz/qux',
-            ),
+                'path'       => 'baz/qux',
+                'headers'    => [],
+            ],
             $client->getHttpClient()->getOptions()
         );
     }
 
+    public function testCreateClientWithDefaultHeaders()
+    {
+        $client = CouchDBClient::create(['dbname' => 'test', 'headers' => ['X-Test' => 'test']]);
+        $http_client = $client->getHttpClient();
+        $connection_options = $http_client->getOptions();
+        $this->assertSame(['X-Test' => 'test'], $connection_options['headers']);
+
+        $http_client->setOption('headers', ['X-Test-New' => 'new']);
+        $connection_options = $http_client->getOptions();
+        $this->assertSame(['X-Test-New' => 'new'], $connection_options['headers']);
+    }
+
     public function testCreateClientWithLogging()
     {
-        $client = CouchDBClient::create(array('dbname' => 'test', 'logging' => true));
+        $client = CouchDBClient::create(['dbname' => 'test', 'logging' => true]);
         $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\LoggingClient', $client->getHttpClient());
     }
 
@@ -77,7 +91,7 @@ class CouchDBClientTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateClientDBNameException()
     {
-        CouchDBClient::create(array());
+        CouchDBClient::create([]);
     }
 
     /**
@@ -86,6 +100,6 @@ class CouchDBClientTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateClientMissingClientException()
     {
-        CouchDBClient::create(array('dbname' => 'test', 'type' => 'foo'));
+        CouchDBClient::create(['dbname' => 'test', 'type' => 'foo']);
     }
 }

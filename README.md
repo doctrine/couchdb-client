@@ -1,8 +1,10 @@
-# Doctrine CouchDB Client
+# Doctrine CouchDB v2.x Client
 
 [![Build Status](https://travis-ci.org/doctrine/couchdb-client.png?branch=master)](https://travis-ci.org/doctrine/couchdb-client)
+[![StyleCI](https://styleci.io/repos/90809440/shield?style=flat)](https://styleci.io/repos/90809440)
 
-Simple API that wraps around CouchDBs HTTP API.
+
+Simple API that wraps around CouchDBs v2.x HTTP API.
 
 ## Features
 
@@ -18,6 +20,7 @@ Simple API that wraps around CouchDBs HTTP API.
 * Compaction Info and Triggering APIs
 * Replication API
 * Symfony Console Commands
+* Find Documents using Mango Query
 
 ## Installation
 
@@ -62,6 +65,27 @@ $client->deleteDocument($id, $rev);
 
 // Delete a database.
 $client->deleteDatabase($client->getDatabase());
+
+//Search documents using Mango Query CouchDB v2.x
+
+$selector = ['_id'=>['$gt'=>null]];
+$options = ['limit'=>1,'skip'=>1,'use_index'=>['_design/doc','index'],'sort'=>[['_id'=>'desc']]];
+$query = new \Doctrine\CouchDB\Mango\MangoQuery($selector,$options);
+$docs = $client->find($query);
+
+$query = new \Doctrine\CouchDB\Mango\MangoQuery();
+$query->select(['_id', 'name'])->where(['$and'=> [
+            [
+              'name'=> [
+                '$eq'=> 'Under the Dome',
+              ],
+              'genres'=> [
+                '$in'=> ['Drama','Comedy'],
+              ],
+            ],
+          ])->sort([['_id'=>'desc']])->limit(1)->skip(1)->use_index(['_design/doc','index']);
+$docs = $client->find($query);
+
 ```
 
 ### Views

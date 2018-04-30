@@ -4,7 +4,7 @@ namespace Doctrine\CouchDB\Tools\Migrations;
 use Doctrine\CouchDB\CouchDBClient;
 
 /**
- * Migration base class
+ * Migration base class.
  */
 abstract class AbstractMigration
 {
@@ -18,8 +18,9 @@ abstract class AbstractMigration
     /**
      * Execute migration by iterating over all documents in batches of 100.
      *
-     * @return void
      * @throws \RuntimeException
+     *
+     * @return void
      */
     public function execute()
     {
@@ -28,11 +29,11 @@ abstract class AbstractMigration
 
         do {
             if ($response->status !== 200) {
-                throw new \RuntimeException("Error while migrating at offset " . $offset);
+                throw new \RuntimeException('Error while migrating at offset '.$offset);
             }
 
             $bulkUpdater = $this->client->createBulkUpdater();
-            foreach ($response->body['rows'] AS $row) {
+            foreach ($response->body['rows'] as $row) {
                 $doc = $this->migrate($row['doc']);
                 if ($doc) {
                     $bulkUpdater->updateDocument($doc);
@@ -49,6 +50,7 @@ abstract class AbstractMigration
      * Return an array of to migrate to document data or null if this document should not be migrated.
      *
      * @param array $docData
+     *
      * @return array|bool|null $docData
      */
     abstract protected function migrate(array $docData);
