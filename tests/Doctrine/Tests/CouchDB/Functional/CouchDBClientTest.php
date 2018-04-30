@@ -1,6 +1,7 @@
 <?php
 
 namespace Doctrine\Tests\CouchDB\Functional;
+use Doctrine\CouchDB\Attachment;
 use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\CouchDB\View\FolderDesignDocument;
 
@@ -692,5 +693,36 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $result = $query->execute();
 
         $this->assertEquals(0, $result->getTotalRows());
+    }
+
+    public function testAttachmentWithSpaces()
+    {
+        $filename = 'foo bar.txt';
+        $data     = 'foobar fooobar fooobar';
+        $this->couchClient->putDocument(array(
+            '_attachments' =>
+                array(
+                    $filename =>
+                        array(
+                            'content_type' => 'text/plain',
+                            'data' => base64_encode($data),
+                        ),
+                ),
+        ), 'foobar-1');
+        $doc = $this->couchClient->findDocument('foobar-1')->body;
+
+        $attachment = Attachment::createStub(
+            $doc['_attachments'][$filename]['content_type'],
+            $doc['_attachments'][$filename]['length'],
+            $doc['_attachments'][$filename]['revpos'],
+            $this->couchClient->getHttpClient(),
+            sprintf(
+                '/%s/%s/%s',
+                $this->getTestDatabase(),
+                $doc['_id'],
+                $filename
+            )
+        );
+        $this->assertEquals($data, $attachment->getRawData());
     }
 }
