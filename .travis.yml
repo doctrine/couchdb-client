@@ -1,6 +1,8 @@
 language: php
 dist: trusty
 sudo: required
+services:
+  - docker
 
 php:
   - 5.4
@@ -10,13 +12,10 @@ php:
   - 7.1
 
 before_script:
-  - mkdir temp
-  - cd temp
-  - git clone https://gist.github.com/9a8e74487573f25bd83b59aac328bf6d.git .
-  - sudo sh install-couchdb-2.0.0-travis-ci.sh
+  - docker pull robsonvn/couchdb-ssl
+  - docker run -d -p 5984:5984 -p 6984:6984 robsonvn/couchdb-ssl
   - sleep 10
   - curl -X PUT localhost:5984/doctrine_test_database
-  - cd ..
   - composer install
 
 script:

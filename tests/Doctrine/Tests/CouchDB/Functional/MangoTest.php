@@ -39,65 +39,55 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
 
           $this->assertEquals($shows, $response->body['docs']);
 
-        //Query by a field with no index
-        $response = $client->find(new MangoQuery(['name'=>['$eq'=>'Under the Dome']]));
+          //Query by a field with no index
+          $response = $client->find(new MangoQuery(['name'=>['$eq'=>'Under the Dome']]));
 
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
-        //No index found warning
-        $this->assertArrayHasKey('warning', $response->body);
-
+          //No index found warning
+          $this->assertArrayHasKey('warning', $response->body);
           $this->assertEquals([$shows[0]], $response->body['docs']);
 
-        //Query by an indexed field
-        $response = $client->find(new MangoQuery(['_id'=>['$eq'=>$shows[0]['_id']]]));
 
-          $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
-          $this->assertObjectHasAttribute('body', $response);
-          $this->assertArrayHasKey('docs', $response->body);
-          $this->assertArrayNotHasKey('warning', $response->body);
-
-          $this->assertEquals([$shows[0]], $response->body['docs']);
-
-        //Nothing
-        $response = $client->find(new MangoQuery(['_id'=>['$eq'=>null]]));
+          //Nothing
+          $response = $client->find(new MangoQuery(['_id'=>['$eq'=>null]]));
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
 
           $this->assertEquals([], $response->body['docs']);
 
-        //Selector Basics
-        $response = $client->find(new MangoQuery(['name'=>'Person of Interest']));
+          //Selector Basics
+          $response = $client->find(new MangoQuery(['name'=>'Person of Interest']));
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertEquals([$shows[1]], $response->body['docs']);
 
-        //Selector with 2 fields
-        $response = $client->find(new MangoQuery(['name'=>'Person of Interest', 'language'=>'English']));
+          //Selector with 2 fields
+          $response = $client->find(new MangoQuery(['name'=>'Person of Interest', 'language'=>'English']));
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertEquals([$shows[1]], $response->body['docs']);
 
-        //Condition Operators
-        $response = $client->find(new MangoQuery(['runtime'=>['$gt'=>60]]));
+          //Condition Operators
+          $response = $client->find(new MangoQuery(['runtime'=>['$gt'=>60]]));
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertEquals(2, count($response->body['docs']));
 
-        //Subfields
-        $response = $client->find(new MangoQuery(['rating'=>['average'=>8]]));
+          //Subfields
+          $response = $client->find(new MangoQuery(['rating'=>['average'=>8]]));
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertEquals(9, count($response->body['docs']));
 
-        //Subfield with dot notation
-        $response = $client->find(new MangoQuery(['rating.average'=>8]));
+          //Subfield with dot notation
+          $response = $client->find(new MangoQuery(['rating.average'=>8]));
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
@@ -142,8 +132,8 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
           $this->assertEquals(2, count($response->body['docs']));
           $this->assertEquals([$shows[0], $shows[1]], $response->body['docs']);
 
-        //repeated key
-        $response = $client->find(new MangoQuery(
+          //repeated key
+          $response = $client->find(new MangoQuery(
           ['$and'=> [
               ['rating.average'=>['$gte'=>9]],
               ['rating.average'=> ['$lte'=>10]],
@@ -155,25 +145,25 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertEquals(17, count($response->body['docs']));
 
-        //Limits and skips
+          //Limits and skips
 
-        //Get first
-        $response = $client->find((new MangoQuery())->limit(1));
+          //Get first
+          $response = $client->find((new MangoQuery())->limit(1));
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertEquals(1, count($response->body['docs']));
           $this->assertEquals([$shows[0]], $response->body['docs']);
 
-        //Get second
-        $response = $client->find((new MangoQuery())->limit(1)->skip(1));
+          //Get second
+          $response = $client->find((new MangoQuery())->limit(1)->skip(1));
           $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
           $this->assertObjectHasAttribute('body', $response);
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertEquals(1, count($response->body['docs']));
           $this->assertEquals([$shows[1]], $response->body['docs']);
 
-        //Select fields
+          //Select fields
           $expected = [
             [
               'id'  => $shows[1]['id'],
@@ -190,23 +180,6 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertEquals(1, count($response->body['docs']));
           $this->assertEquals($expected, $response->body['docs']);
-
-          $expected = [];
-          for ($i = count($shows) - 1; $i >= 0; $i--) {
-              $row = [
-              '_id' => $shows[$i]['_id'],
-              'name'=> $shows[$i]['name'],
-          ];
-              $expected[] = $row;
-          }
-
-          $query = new MangoQuery();
-          $query->select(['_id', 'name'])->sort([['_id'=>'desc']])->limit(999);
-          $response = $client->find($query);
-          $this->assertInstanceOf('\Doctrine\CouchDB\HTTP\Response', $response);
-          $this->assertObjectHasAttribute('body', $response);
-          $this->assertArrayHasKey('docs', $response->body);
-          $this->assertEquals($expected, $response->body['docs']);
       }
 
       public function testMangoIndexAndSort()
@@ -219,8 +192,8 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
           $updater->updateDocuments($shows);
           $response = $updater->execute();
 
-        //create index
-        $fields = [['name'=>'desc']];
+          //create index
+          $fields = [['name'=>'desc']];
           $response = $client->createMangoIndex($fields, 'index-test', 'name-desc');
 
           $this->assertObjectHasAttribute('body', $response);
@@ -234,7 +207,7 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
           $this->assertArrayHasKey('docs', $response->body);
           $this->assertArrayNotHasKey('warning', $response->body);
 
-        //Test sort
+          //Test sort
           $query = new MangoQuery(['name'=>['$gt'=>null]]);
           $query->sort([['name'=>'desc']]);
           $response = $client->find($query);
@@ -248,7 +221,7 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
           $deleted = $client->deleteMangoIndex('index-test', 'name-desc');
           $this->assertTrue($deleted);
 
-        //create subdocument index
+          //create subdocument index
           $fields = [['rating.average'=>'desc'], ['name'=>'desc']];
           $response = $client->createMangoIndex($fields, 'index-test', 'rating.average-desc');
           $query = new MangoQuery(['rating.average'=>['$gt'=>null]]);
@@ -261,8 +234,8 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
           $this->assertArrayNotHasKey('warning', $response->body);
           $this->assertEquals('The Wire', $response->body['docs'][0]['name']);
 
-        //Create another index in the same document
-        $fields = [['type'=>'asc'], ['name'=>'asc']];
+          //Create another index in the same document
+          $fields = [['type'=>'asc'], ['name'=>'asc']];
           $response = $client->createMangoIndex($fields, 'index-test', 'type-asc&name-asc');
           $this->assertObjectHasAttribute('body', $response);
           $this->assertEquals('created', $response->body['result']);
@@ -273,7 +246,7 @@ class MangoTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCase
           $response = $client->find($query);
           $this->assertEquals('American Dad!', $response->body['docs'][0]['name']);
 
-        //Find for impacts
+          //Find for impacts
           $query = new MangoQuery(['rating.average'=>['$gt'=>null]]);
           $query->sort([['rating.average'=>'desc'], ['name'=>'desc']]);
           $response = $client->find($query);

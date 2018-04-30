@@ -1,10 +1,10 @@
 # Doctrine CouchDB v2.0.0 Client
 
-[![Build Status](https://travis-ci.org/robsonvn/couchdb-client.png?branch=master)](https://travis-ci.org/robsonvn/couchdb-client)
+[![Build Status](https://travis-ci.org/doctrine/couchdb-client.png?branch=master)](https://travis-ci.org/doctrine/couchdb-client)
 [![StyleCI](https://styleci.io/repos/90809440/shield?style=flat)](https://styleci.io/repos/90809440)
 
 
-Simple API that wraps around CouchDBs v2.0.0 HTTP API.
+Simple API that wraps around CouchDBs v2.x HTTP API.
 
 ## Features
 
@@ -66,7 +66,7 @@ $client->deleteDocument($id, $rev);
 // Delete a database.
 $client->deleteDatabase($client->getDatabase());
 
-//Search documents using Mango Query CouchDB v2.0.0
+//Search documents using Mango Query CouchDB v2.x
 
 $selector = ['_id'=>['$gt'=>null]];
 $options = ['limit'=>1,'skip'=>1,'use_index'=>['_design/doc','index'],'sort'=>[['_id'=>'desc']]];

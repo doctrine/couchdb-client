@@ -495,19 +495,20 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
 
         $client->replicate($sourceDatabase, $targetDatabase1, null, true);
         //Receiving empty array when requesting straight away
-        sleep(1);
+        sleep(5);
         $active_tasks = $client->getActiveTasks(true);
+
         $this->assertTrue(count($active_tasks) == 1);
 
         $client->replicate($sourceDatabase, $targetDatabase2, null, true);
-        sleep(1);
+        sleep(5);
         $active_tasks = $client->getActiveTasks();
         $this->assertTrue(count($active_tasks) == 2);
 
         $client->replicate($sourceDatabase, $targetDatabase1, true, true);
         $client->replicate($sourceDatabase, $targetDatabase2, true, true);
 
-        sleep(1);
+        sleep(5);
         $active_tasks = $client->getActiveTasks();
         $this->assertEquals([], $active_tasks);
 
