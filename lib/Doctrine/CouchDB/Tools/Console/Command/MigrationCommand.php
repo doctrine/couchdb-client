@@ -2,12 +2,10 @@
 
 namespace Doctrine\CouchDB\Tools\Console\Command;
 
-
-use Symfony\Component\Console\Input\InputArgument,
-    Symfony\Component\Console\Input\InputOption,
-    Symfony\Component\Console\Input\InputInterface,
-    Symfony\Component\Console\Output\OutputInterface,
-    Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class MigrationCommand extends Command
 {
@@ -15,9 +13,9 @@ class MigrationCommand extends Command
     {
         $this->setName('couchdb:migrate')
              ->setDescription('Execute a migration in CouchDB.')
-             ->setDefinition(array(
+             ->setDefinition([
                 new InputArgument('class', InputArgument::REQUIRED, 'Migration class name', null),
-        ));
+        ]);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -29,6 +27,6 @@ class MigrationCommand extends Command
         $migration = new $className($this->getHelper('couchdb')->getCouchDBClient());
         $migration->execute();
 
-        $output->writeln("Migration was successfully executed!");
+        $output->writeln('Migration was successfully executed!');
     }
 }

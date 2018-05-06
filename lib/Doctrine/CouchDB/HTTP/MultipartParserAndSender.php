@@ -1,15 +1,12 @@
 <?php
 
-
 namespace Doctrine\CouchDB\HTTP;
-
 
 /**
  * Streams the multipart data from the source to the target and thus makes the
  * transfer with lesser memory footprint.
  *
  * Class MultipartParserAndSender
- * @package Doctrine\CouchDB\HTTP
  */
 class MultipartParserAndSender
 {
@@ -50,7 +47,8 @@ class MultipartParserAndSender
             $sourceOptions['ip'],
             $sourceOptions['ssl'],
             $sourceOptions['path'],
-            $sourceOptions['timeout']
+            $sourceOptions['timeout'],
+            $sourceOptions['headers']
         );
 
         $targetOptions = $target->getOptions();
@@ -62,7 +60,8 @@ class MultipartParserAndSender
             $targetOptions['ip'],
             $targetOptions['ssl'],
             $targetOptions['path'],
-            $targetOptions['timeout']
+            $targetOptions['timeout'],
+            $sourceOptions['headers']
         );
     }
 
@@ -75,17 +74,19 @@ class MultipartParserAndSender
      * @param string $sourcePath
      * @param string $targetPath
      * @param string $sourceData
-     * @param array $sourceHeaders
-     * @return array|ErrorResponse|string
+     * @param array  $sourceHeaders
+     *
      * @throws HTTPException
      * @throws \Exception
+     *
+     * @return array|ErrorResponse|string
      */
     public function request(
         $sourceMethod,
         $sourcePath,
         $targetPath,
         $sourceData = null,
-        array $sourceHeaders = array()
+        array $sourceHeaders = []
     ) {
         $this->sourceConnection = $this->sourceClient->getConnection(
             $sourceMethod,
@@ -97,11 +98,10 @@ class MultipartParserAndSender
         $body = '';
 
         if (empty($sourceResponseHeaders['status'])) {
-            try{
+            try {
                 // Close the connection resource.
                 fclose($this->sourceConnection);
             } catch (\Exception $e) {
-
             }
             throw HTTPException::readFailure(
                 $this->sourceClient->getOptions()['ip'],
@@ -109,23 +109,20 @@ class MultipartParserAndSender
                 'Received an empty response or not status code',
                 0
             );
-
-
         } elseif ($sourceResponseHeaders['status'] != 200) {
             while (!feof($this->sourceConnection)) {
                 $body .= fgets($this->sourceConnection);
             }
-            try{
+            try {
                 fclose($this->sourceConnection);
             } catch (\Exception $e) {
-
             }
+
             return new ErrorResponse(
                 $sourceResponseHeaders['status'],
                 $sourceResponseHeaders,
                 $body
             );
-
         } else {
             try {
                 // Body is an array containing:
@@ -133,18 +130,17 @@ class MultipartParserAndSender
                 //  attachments. These should be posted using the Bulk API.
                 // 2) Responses of posting docs with attachments.
                 $body = $this->parseAndSend($targetPath);
-                try{
+                try {
                     fclose($this->sourceConnection);
                 } catch (\Exception $e) {
-
                 }
+
                 return $body;
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 throw $e;
             }
         }
     }
-
 
     /**
      * Read and return next line from the connection pointer.
@@ -152,6 +148,7 @@ class MultipartParserAndSender
      * to be read.
      *
      * @param int $maxLength
+     *
      * @return string
      */
     protected function getNextLineFromSourceConnection($maxLength = null)
@@ -170,9 +167,11 @@ class MultipartParserAndSender
      * 2) Responses of posting docs with attachments.
      *
      * @param $targetPath
-     * @return array
+     *
      * @throws \Exception
      * @throws \HTTPException
+     *
+     * @return array
      */
     protected function parseAndSend($targetPath)
     {
@@ -186,19 +185,16 @@ class MultipartParserAndSender
 
         // Docs that don't have attachment.
         // These should be posted using Bulk upload.
-        $docStack = array();
+        $docStack = [];
 
         // Responses from posting docs that have attachments.
-        $responses = array();
+        $responses = [];
 
         while (!feof($this->sourceConnection)) {
-
             $line = ltrim($this->getNextLineFromSourceConnection());
             if ($line == '') {
                 continue;
-
             } elseif (strpos($line, 'Content-Type') !== false) {
-
                 list($header, $value) = explode(':', $line);
                 $header = trim($header);
                 $value = trim($value);
@@ -211,27 +207,21 @@ class MultipartParserAndSender
                     // Get the boundary for the current doc.
                     if (strpos($info, 'boundary') !== false) {
                         $boundary = $info;
-
                     } elseif (strpos($info, 'error') !== false) {
 
                         // Missing revs at the source. Continue till the end
                         // of this document.
-                        while (strpos($this->getNextLineFromSourceConnection(), $mainBoundary) === false) ;
+                        while (strpos($this->getNextLineFromSourceConnection(), $mainBoundary) === false);
                         continue;
-
                     } else {
-
                         throw new \Exception('Unknown parameter with Content-Type.');
                     }
-
                 }
                 // Doc with attachments.
                 if (strpos($value, 'multipart/related') !== false) {
-
                     if ($boundary == '') {
                         throw new \Exception('Boundary not set for multipart/related data.');
                     }
-
 
                     $boundary = explode('=', $boundary, 2)[1];
 
@@ -240,22 +230,19 @@ class MultipartParserAndSender
                             'PUT',
                             $targetPath,
                             $mainBoundary,
-                            array('Content-Type' => 'multipart/related; boundary=' . $boundary));
+                            ['Content-Type' => 'multipart/related; boundary='.$boundary]);
                     } catch (\Exception $e) {
                         $responses[] = $e;
                     }
-
-
                 } elseif ($value == 'application/json') {
                     // JSON doc without attachment.
                     $jsonDoc = '';
 
-                    while(trim(($jsonDoc = $this->getNextLineFromSourceConnection())) == '');
+                    while (trim(($jsonDoc = $this->getNextLineFromSourceConnection())) == '');
                     array_push($docStack, trim($jsonDoc));
 
                     // Continue till the end of this document.
-                    while (strpos($this->getNextLineFromSourceConnection(), $mainBoundary) === false) ;
-
+                    while (strpos($this->getNextLineFromSourceConnection(), $mainBoundary) === false);
                 } else {
                     throw new \UnexpectedValueException('This value is not supported.');
                 }
@@ -263,9 +250,9 @@ class MultipartParserAndSender
                 throw new \Exception('The first line is not the Content-Type.');
             }
         }
-        return array($docStack, $responses);
-    }
 
+        return [$docStack, $responses];
+    }
 
     /**
      * Reads multipart data from sourceConnection and streams it to the
@@ -276,18 +263,19 @@ class MultipartParserAndSender
      * @param $path
      * @param $streamEnd
      * @param array $requestHeaders
-     * @return mixed|string
+     *
      * @throws \Exception
      * @throws \HTTPException
+     *
+     * @return mixed|string
      */
     protected function sendStream(
         $method,
         $path,
         $streamEnd,
-        $requestHeaders = array()
+        $requestHeaders = []
     ) {
         $dataStream = $this->sourceConnection;
-
 
         // Read the json doc. Use _attachments field to find the total
         // Content-Length and create the request header with initial doc data.
@@ -316,7 +304,7 @@ class MultipartParserAndSender
             // Quotes and a "/r/n"
             $totalAttachmentLength += strlen('Content-Disposition: attachment; filename=') + strlen($docName) + 4;
             $totalAttachmentLength += strlen('Content-Type: ') + strlen($metaData['content_type']) + 2;
-            $totalAttachmentLength +=  strlen('Content-Length: ');
+            $totalAttachmentLength += strlen('Content-Length: ');
             if (isset($metaData['encoding'])) {
                 $totalAttachmentLength += $metaData['encoded_length'] + strlen($metaData['encoded_length']) + 2;
                 $totalAttachmentLength += strlen('Content-Encoding: ') + strlen($metaData['encoding']) + 2;
@@ -331,7 +319,6 @@ class MultipartParserAndSender
         $requestHeaders['Content-Length'] = strlen($str) + strlen($streamLine)
             + $totalAttachmentLength + $attachmentCount * (2 + $docBoundaryLength) + $docBoundaryLength + 2;
 
-
         if ($this->targetConnection == null) {
             $this->targetConnection = $this->targetClient->getConnection(
                 $method,
@@ -345,7 +332,7 @@ class MultipartParserAndSender
 
         // Write the rest of the data including attachments line by line or in
         // chunks.
-        while(!feof($dataStream) &&
+        while (!feof($dataStream) &&
             ($streamEnd === null ||
                 strpos($streamLine, $streamEnd) ===
                 false
@@ -353,8 +340,8 @@ class MultipartParserAndSender
         ) {
             $totalSent = 0;
             $length = strlen($streamLine);
-            while($totalSent != $length) {
-                $sent = fwrite($this->targetConnection, substr($streamLine,$totalSent));
+            while ($totalSent != $length) {
+                $sent = fwrite($this->targetConnection, substr($streamLine, $totalSent));
                 if ($sent === false) {
                     throw new \HTTPException('Stream write error.');
                 } else {
@@ -369,10 +356,9 @@ class MultipartParserAndSender
 
         // Read response headers
         $rawHeaders = '';
-        $headers = array(
+        $headers = [
             'connection' => ($this->targetClient->getOptions()['keep-alive'] ? 'Keep-Alive' : 'Close'),
-        );
-
+        ];
 
         // Remove leading newlines, should not occur at all, actually.
         while ((($line = fgets($this->targetConnection)) !== false) &&
@@ -394,25 +380,24 @@ class MultipartParserAndSender
 
         do {
             // Also store raw headers for later logging
-            $rawHeaders .= $lineContent . "\n";
+            $rawHeaders .= $lineContent."\n";
             // Extract header values
             if (preg_match('(^HTTP/(?P<version>\d+\.\d+)\s+(?P<status>\d+))S', $lineContent, $match)) {
                 $headers['version'] = $match['version'];
-                $headers['status']  = (int) $match['status'];
+                $headers['status'] = (int) $match['status'];
             } else {
                 list($key, $value) = explode(':', $lineContent, 2);
                 $headers[strtolower($key)] = ltrim($value);
             }
-        }  while ((($line = fgets($this->targetConnection)) !== false) &&
+        } while ((($line = fgets($this->targetConnection)) !== false) &&
             (($lineContent = rtrim($line)) !== ''));
-
 
         // Read response body
         $body = '';
 
         // HTTP 1.1 supports chunked transfer encoding, if the according
         // header is not set, just read the specified amount of bytes.
-        $bytesToRead = (int) (isset( $headers['content-length']) ? $headers['content-length'] : 0);
+        $bytesToRead = (int) (isset($headers['content-length']) ? $headers['content-length'] : 0);
         // Read body only as specified by chunk sizes, everything else
         // are just footnotes, which are not relevant for us.
         while ($bytesToRead > 0) {
@@ -436,8 +421,7 @@ class MultipartParserAndSender
                 // read only once.
                 throw HTTPException::fromResponse($path, new Response($headers['status'], $headers, $body));
         }
-        return ($body != '' ? json_decode($body, true) : array("status" => $headers['status'])) ;
+
+        return $body != '' ? json_decode($body, true) : ['status' => $headers['status']];
     }
-
-
 }
