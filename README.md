@@ -6,7 +6,7 @@
 
 Simple API that wraps around CouchDBs v2.x HTTP API.
 
-For CouchDB 1.x, please check our [release/1.0.0](tree/release/1.0.0) branch.
+For CouchDB 1.x, please check our [release/1.0.0](https://github.com/doctrine/couchdb-client/tree/release/1.0.0) branch.
 
 ## Features
 
