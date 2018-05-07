@@ -6,6 +6,8 @@
 
 Simple API that wraps around CouchDBs v2.x HTTP API.
 
+For CouchDB 1.x, please check our [release/1.0.0](tree/release/1.0.0) branch.
+
 ## Features
 
 * Create, Delete, List Databases
