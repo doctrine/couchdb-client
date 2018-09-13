@@ -5,8 +5,9 @@ namespace Doctrine\Tests\CouchDB;
 use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\CouchDB\MangoClient;
 use Doctrine\CouchDB\HTTP\SocketClient;
+use PHPUnit\Framework\TestCase;
 
-abstract class CouchDBFunctionalTestCase extends \PHPUnit_Framework_TestCase
+abstract class CouchDBFunctionalTestCase extends TestCase
 {
     private $httpClient = null;
 

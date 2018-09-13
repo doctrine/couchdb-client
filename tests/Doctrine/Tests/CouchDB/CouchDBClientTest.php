@@ -4,8 +4,9 @@ namespace Doctrine\Tests\CouchDB;
 
 use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\CouchDB\HTTP\SocketClient;
+use PHPUnit\Framework\TestCase;
 
-class CouchDBClientTest extends \PHPUnit_Framework_TestCase
+class CouchDBClientTest extends TestCase
 {
     public function testConstants()
     {
