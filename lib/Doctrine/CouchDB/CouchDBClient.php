@@ -164,6 +164,12 @@ class CouchDBClient
     {
         return $this->databaseName;
     }
+    
+    public function setDatabase( $databaseName = null )
+    {
+        if( isset($databaseName) )
+            $this->databaseName = $databaseName;
+    }
 
     /**
      * Let CouchDB generate an array of UUIDs.
