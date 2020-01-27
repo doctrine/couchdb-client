@@ -811,9 +811,9 @@ class CouchDBClient
     }
 
     /**
-     * Get changes.
+     * Bulk get.
      *
-     * @param array $params
+     * @param array $docs
      *
      * @throws HTTPException
      *
