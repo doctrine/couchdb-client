@@ -813,7 +813,7 @@ class CouchDBClient
     /**
      * Bulk get.
      *
-     * @param array $docs
+     * @param array<int, array<string, string>> $docs
      *
      * @throws HTTPException
      *
