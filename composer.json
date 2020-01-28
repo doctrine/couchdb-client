@@ -1,5 +1,5 @@
 {
-    "name": "sidneycorreia/couchdb",
+    "name": "doctrine/couchdb",
     "type": "library",
     "description": "CouchDB Client",
     "keywords": ["persistence", "couchdb"],
