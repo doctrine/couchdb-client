@@ -686,7 +686,7 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
     }
 
 
-    public function testBulkGet()
+    public function testBulkGet(): void
     {
         $client = $this->couchClient;
 
