@@ -393,20 +393,21 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         }
 
         $response = $client->findDocuments($ids);
-
-        $this->assertEquals(['total_rows' => 3, 'rows' => $expectedRows], $response->body);
+        // print_r(['total_rows' => 3, 'offset' => null, 'rows' => $expectedRows]);
+        // print_r($response->body);
+        $this->assertEquals(['total_rows' => 3, 'offset' => null, 'rows' => $expectedRows], $response->body);
 
         $response = $client->findDocuments($ids, 0);
-        $this->assertEquals(['total_rows' => 3, 'rows' => $expectedRows], $response->body);
+        $this->assertEquals(['total_rows' => 3, 'offset' => null, 'rows' => $expectedRows], $response->body);
 
         $response = $client->findDocuments($ids, 1);
-        $this->assertEquals(['total_rows' => 3, 'rows' => [$expectedRows[0]]], $response->body);
+        $this->assertEquals(['total_rows' => 3, 'offset' => null, 'rows' => [$expectedRows[0]]], $response->body);
 
         $response = $client->findDocuments($ids, 0, 2);
-        $this->assertEquals(['total_rows' => 3, 'rows' => [$expectedRows[2]]], $response->body);
+        $this->assertEquals(['total_rows' => 3, 'offset' => null, 'rows' => [$expectedRows[2]]], $response->body);
 
         $response = $client->findDocuments($ids, 1, 1);
-        $this->assertEquals(['total_rows' => 3, 'rows' => [$expectedRows[1]]], $response->body);
+        $this->assertEquals(['total_rows' => 3, 'offset' => null, 'rows' => [$expectedRows[1]]], $response->body);
     }
 
     public function testAllDocs()
@@ -682,5 +683,54 @@ class CouchDBClientTest extends \Doctrine\Tests\CouchDB\CouchDBFunctionalTestCas
         $result = $query->execute();
 
         $this->assertEquals(0, $result->getTotalRows());
+    }
+
+
+    public function testBulkGet(): void
+    {
+        $client = $this->couchClient;
+
+
+        $docs = [];
+        $expectedRows = [];
+        foreach (range(1, 3) as $i) {
+            list($id, $rev) = $client->postDocument(['foo' => 'bar'.$i]);
+            $docs[] = [
+                'id' => $id,
+                'rev' => $rev
+            ];
+
+            $ids[] = $id;
+            
+            $expectedRows[] = [
+                'id'    => $id,
+                'docs'  => [
+                    ['ok' => [
+                        '_id'  => $id,
+                        '_rev' => $rev,
+                        'foo'  => 'bar'.$i,
+                    ]]    
+                ]
+            ];
+        }
+
+        
+        $bulkGet = $client->bulkGet($docs);
+        $this->assertEquals(['results' => $expectedRows], $bulkGet);
+
+        $bulkGetNonexistent = $client->bulkGet([['id' => 'nonexistent-id']]);
+        $expectedRowsWhenNonexistent[] = [
+            'id'    => 'nonexistent-id',
+                'docs'  => [
+                    ['error' => [
+                        'id'        => 'nonexistent-id',
+                        'rev'       => 'undefined',
+                        'error'     => 'not_found',
+                        'reason'    => 'missing',
+                    ]]    
+                ]
+        ];
+        
+        $this->assertEquals(['results' => $expectedRowsWhenNonexistent], $bulkGetNonexistent);
     }
 }

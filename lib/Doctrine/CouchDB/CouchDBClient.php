@@ -809,4 +809,31 @@ class CouchDBClient
 
         return $response->body;
     }
+
+    /**
+     * Bulk get.
+     *
+     * @param array<int, array<string, string>> $docs
+     *
+     * @throws HTTPException
+     *
+     * @return array
+     */
+    public function bulkGet(array $docs = [])
+    {
+        $path = '/'.$this->databaseName.'/_bulk_get';
+
+        $response = $this->httpClient->request(
+            'POST',
+            '/'.$this->databaseName.'/_bulk_get',
+            json_encode(['docs' => $docs])
+        );
+
+        if ($response->status != 200) {
+            throw HTTPException::fromResponse($path, $response);
+        }
+
+
+        return $response->body;
+    }
 }
