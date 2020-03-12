@@ -507,6 +507,26 @@ class CouchDBClient
             throw HTTPException::fromResponse($path, $response);
         }
     }
+    
+    /**
+     * Delete a document.
+     *
+     * @param string $id
+     * @param string $rev
+     *
+     * @throws HTTPException
+     *
+     * @return void
+     */
+    public function deleteSubDocument($id, $subId, $rev)
+    {
+        $path = '/'.$this->databaseName.'/'.urlencode($id).'/'.urlencode($subId).'?rev='.$rev;
+        $response = $this->httpClient->request('DELETE', $path);
+
+        if ($response->status != 200) {
+            throw HTTPException::fromResponse($path, $response);
+        }
+    }
 
     /**
      * @param string         $designDocName
@@ -903,7 +923,7 @@ class CouchDBClient
      */
     public function deleteAttachment($docId, $attName, $docRev)
     {
-        $this->deleteDocument($docId . '/' . $attName, $docRev);
+        $this->deleteDocument($docId, $attName, $docRev);
 
         $doc = $this->findDocument($docId);
 
