@@ -815,4 +815,98 @@ class CouchDBClient
 
         return $response->body;
     }
+    
+    /**
+     * getAttachment.
+     *
+     * @param $docId
+     * @param $attName
+     *
+     * @return Attachment|null
+     */
+    public function getAttachment($docId, $attName)
+    {
+        $path = '/' . $this->databaseName . '/' . urlencode($docId) . '/' . urlencode($attName);
+
+        $attachmentResponse = $this->httpClient->request('GET', $path);
+
+        if ($attachmentResponse->status != 200) {
+            return null;
+        }
+
+        return $this->constructAttachment($attachmentResponse->body, $docId, $attName);
+    }
+
+    /**
+     * contructAttachment.
+     *
+     * This function may be better placed elsewhere.
+     *
+     * @param array $data
+     *
+     * @return Attachment
+     */
+    public function constructAttachment(array $data, $docId, $attName)
+    {
+        $path = '/' . $this->databaseName . '/' . urlencode($docId) . '/' . urlencode($attName);
+
+        if (array_key_exists('stub', $data) && $data['stub'] == true) {
+            $attachment = Attachment::createStub($data['content_type'], $data['length'], $data['revpos'], $this->httpClient, $path);
+            // Standardisation for the odd way that lazyload maps things
+            $attachment = $this->constructAttachment(json_decode($attachment->getRawData(), true), $docId, $attName);
+        } else {
+            $attachment = Attachment::createFromBase64Data($data['data'], $data['content_type']);
+        }
+
+        return $attachment;
+    }
+
+    /**
+     * Execute a PUT request against CouchDB inserting or updating a document attachment.
+     *
+     * @param Attachment $data
+     * @param $docId
+     * @param $attName
+     * @param null $docRev
+     * @throws HTTPException
+     * @return array<id, ok, rev>
+     */
+    public function putAttachment(Attachment $data, $docId, $attName, $docRev = null)
+    {
+        $path = '/' . $this->databaseName . '/' . urlencode($docId) . '/' . urlencode($attName);
+
+        if (!is_null($docRev)) {
+            $path .= '?rev=' . $docRev;
+        }
+
+        $response = $this->httpClient->request('PUT', $path, json_encode($data->toArray()));
+
+        if ($response->status != 201) {
+            throw HTTPException::fromResponse($path, $response);
+        }
+
+
+
+        return array($response->body['id'], $response->body['ok'], $response->body['rev']);
+    }
+
+    /**
+     * deleteAttachment.
+     *
+     * @param $docId
+     * @param $attName
+     * @param $docRev
+     *
+     * @throws HTTPException
+     *
+     * @return array<id, rev>
+     */
+    public function deleteAttachment($docId, $attName, $docRev)
+    {
+        $this->deleteDocument($docId . '/' . $attName, $docRev);
+
+        $doc = $this->findDocument($docId);
+
+        return array($doc->body['_id'], $doc->body['_rev']);
+    }
 }
