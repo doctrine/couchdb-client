@@ -923,7 +923,7 @@ class CouchDBClient
      */
     public function deleteAttachment($docId, $attName, $docRev)
     {
-        $this->deleteDocument($docId, $attName, $docRev);
+        $this->deleteSubDocument($docId, $attName, $docRev);
 
         $doc = $this->findDocument($docId);
 
