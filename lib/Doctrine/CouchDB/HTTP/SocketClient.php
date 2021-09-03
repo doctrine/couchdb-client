@@ -251,44 +251,46 @@ class SocketClient extends AbstractHTTPClient
         } while ((($line = fgets($this->connection)) !== false) &&
                    (($lineContent = rtrim($line)) !== ''));
 
-        // Read response body
         $body = '';
-        if (!isset($headers['transfer-encoding']) ||
-             ($headers['transfer-encoding'] !== 'chunked')) {
-            // HTTP 1.1 supports chunked transfer encoding, if the according
-            // header is not set, just read the specified amount of bytes.
-            $bytesToRead = (int) (isset($headers['content-length']) ? $headers['content-length'] : 0);
+        // Read response body for NON-HEAD requests
+        if(strtoupper($method) !== 'HEAD'){
+            if (!isset($headers['transfer-encoding']) ||
+                 ($headers['transfer-encoding'] !== 'chunked')) {
+                // HTTP 1.1 supports chunked transfer encoding, if the according
+                // header is not set, just read the specified amount of bytes.
+                $bytesToRead = (int) (isset($headers['content-length']) ? $headers['content-length'] : 0);
 
-            // Read body only as specified by chunk sizes, everything else
-            // are just footnotes, which are not relevant for us.
-            while ($bytesToRead > 0) {
-                $body .= $read = fgets($this->connection, $bytesToRead + 1);
-                $bytesToRead -= strlen($read);
-            }
-        } else {
-            // When transfer-encoding=chunked has been specified in the
-            // response headers, read all chunks and sum them up to the body,
-            // until the server has finished. Ignore all additional HTTP
-            // options after that.
-            do {
-                $line = rtrim(fgets($this->connection));
-
-                // Get bytes to read, with option appending comment
-                if (preg_match('(^([0-9a-f]+)(?:;.*)?$)', $line, $match)) {
-                    $bytesToRead = hexdec($match[1]);
-
-                    // Read body only as specified by chunk sizes, everything else
-                    // are just footnotes, which are not relevant for us.
-                    $bytesLeft = $bytesToRead;
-                    while ($bytesLeft > 0) {
-                        $body .= $read = fread($this->connection, $bytesLeft + 2);
-                        $bytesLeft -= strlen($read);
-                    }
+                // Read body only as specified by chunk sizes, everything else
+                // are just footnotes, which are not relevant for us.
+                while ($bytesToRead > 0) {
+                    $body .= $read = fgets($this->connection, $bytesToRead + 1);
+                    $bytesToRead -= strlen($read);
                 }
-            } while ($bytesToRead > 0);
+            } else {
+                // When transfer-encoding=chunked has been specified in the
+                // response headers, read all chunks and sum them up to the body,
+                // until the server has finished. Ignore all additional HTTP
+                // options after that.
+                do {
+                    $line = rtrim(fgets($this->connection));
 
-            // Chop off \r\n from the end.
-            $body = substr($body, 0, -2);
+                    // Get bytes to read, with option appending comment
+                    if (preg_match('(^([0-9a-f]+)(?:;.*)?$)', $line, $match)) {
+                        $bytesToRead = hexdec($match[1]);
+
+                        // Read body only as specified by chunk sizes, everything else
+                        // are just footnotes, which are not relevant for us.
+                        $bytesLeft = $bytesToRead;
+                        while ($bytesLeft > 0) {
+                            $body .= $read = fread($this->connection, $bytesLeft + 2);
+                            $bytesLeft -= strlen($read);
+                        }
+                    }
+                } while ($bytesToRead > 0);
+
+                // Chop off \r\n from the end.
+                $body = substr($body, 0, -2);
+            }
         }
 
         // Reset the connection if the server asks for it.
