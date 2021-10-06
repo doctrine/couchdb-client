@@ -90,6 +90,14 @@ $docs = $client->find($query);
 
 ```
 
+#### Docker
+
+Default IP is 127.0.0.1, if you use Docker you may need the container IP (docker inspect ID) :
+
+```
+$client = \Doctrine\CouchDB\CouchDBClient::create(array('dbname' => 'doctrine_example','ip' => '172.18.0.4'));
+```
+
 ### Views
 
 A simple example demonstrating how to create views and query them:
