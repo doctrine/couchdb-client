@@ -360,7 +360,7 @@ class CouchDBClient
     {
         $response = $this->httpClient->request('DELETE', '/'.urlencode($name));
 
-        if (! in_array($response->status, [200,202,404])) {
+        if (!in_array($response->status, [200,201,202,404])) {
             throw HTTPException::fromResponse('/'.urlencode($name), $response);
         }
     }
